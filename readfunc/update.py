@@ -8,6 +8,9 @@ import sys
 def update_passings(passing_driver, passed_driver, data):
     return 0
 
+
+
+
 '''
     initialize_racePasses
     Parameters:
@@ -70,11 +73,13 @@ def update_racePasses(passing_driver, passed_driver, data, passing_P2P=False, pa
 
     return data
 
+
+
 def update_overtakes(data):
     return 0
 
 
-
+# This function is only being used to test my other functions
 def main():
     driver_list = [1, 2, 3]
     data = {}
