@@ -5,9 +5,19 @@ import json
 import sys
 
 
+'''
+    initialize_passings
+    Parameters:
+        driver_list - a data structure containing the transponder numbers of participating drivers
+        data - the dictionary that is being initialized in this function
+'''
+def initialize_passings(driver_list, data):
+    
+    return data
+
 def update_passings(passing_driver, passed_driver, data):
 
-    return 0
+    return data
 
 
 
@@ -88,6 +98,7 @@ def update_racePasses(passing_driver, passed_driver, data, passing_P2P=False, pa
     Parameters:
         data - the dictionary that will be initialized and returned from the function
         driver_list - a data structure containing the transponder number of all the drivers
+    The keys in the "data" dictionary will be the transponder numbers of the drivers.
 '''
 def initialize_overtakes(data, driver_list):
     for Transponder_Number in driver_list:
@@ -95,21 +106,43 @@ def initialize_overtakes(data, driver_list):
             data[Transponder_Number] = {}
 
     return data
+
 '''
     update_overtakes
     Parameters:
+        driver_number - the number of the driver whose information is being updated
+        data - he dictionary containing data on overtake statistics which is being updated and returned in this function
+        input_data - the data, in the form of a dictionary, that is being added to data
+        overtake_num - the number of times the driver has used the overtake button
+
+    The data dictionary will need to be in the following format to work properly:
+        overtake_data{
+            Transponder_Number: {input_data},
+            Transponder_Number: {input_data}
+            ...,
+            Transponder_Number: {input_data}
+        }
 
 '''
-def update_overtakes(data):
-    return 0
+def update_overtakes(driver_number, data, input_data, overtake_num):
+    if driver_number not in data:
+        data[driver_number] = {}
+        #TODO: Properly format the input data so it contains all the information needed
+    data[driver_number][overtake_num] = input_data
+    return data
 
 
 # This function is only being used to test my other functions
 def main():
     driver_list = [1, 2, 3]
     data = {}
-    data = initialize_racePasses(data, driver_list)
-    data = update_racePasses(driver_list[0], driver_list[2], data, True, False)
+    #data = initialize_racePasses(data, driver_list)
+    #data = update_racePasses(driver_list[0], driver_list[2], data, True, False)
+    #print(data)
+    d = {'a', 'b', 'c'}
+    e = {'d', 'g', 'e'}
+    data = update_overtakes(2123123, data, d, 1)
+    data = update_overtakes(2123123, data, e, 2)
     print(data)
 
 if __name__ == '__main__':
