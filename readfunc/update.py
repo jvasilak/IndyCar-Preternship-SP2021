@@ -6,6 +6,7 @@ import sys
 
 
 def update_passings(passing_driver, passed_driver, data):
+
     return 0
 
 
@@ -16,6 +17,15 @@ def update_passings(passing_driver, passed_driver, data):
     Parameters:
         data - the dictionary that is being initialized in this function
         driver_list - a data structure containing the transponder numbers of participating drivers
+    This function will initialize the data dictionary, putting it in the formatt used by the update_racePasses function.
+    Within the dictionary, there are multiple nested dictionaries.
+    The keys of the dictionary are:
+        Overtaker - contains data regarding instances when this driver is the one doing the overtaking
+        Overtaken - contains data regarding instances when this driver is the one being overtaken
+        P2P - situations, either where the driver is overtaking another driver or is being overtaken, where Push to Pass is active for this driver
+        ~P2P - situations where Push to Pass is not active for this driver
+        OppP2P - situations where Push to Pass is active for the other driver involved in the overtake
+        ~OppP2P - situations where Push to Pass is not active for the other driver involved in the overtake
 '''
 def initialize_racePasses(data, driver_list):
 
@@ -73,8 +83,23 @@ def update_racePasses(passing_driver, passed_driver, data, passing_P2P=False, pa
 
     return data
 
+'''
+    initialize_overtakes
+    Parameters:
+        data - the dictionary that will be initialized and returned from the function
+        driver_list - a data structure containing the transponder number of all the drivers
+'''
+def initialize_overtakes(data, driver_list):
+    for Transponder_Number in driver_list:
+        if Transponder_Number not in data:
+            data[Transponder_Number] = {}
 
+    return data
+'''
+    update_overtakes
+    Parameters:
 
+'''
 def update_overtakes(data):
     return 0
 
