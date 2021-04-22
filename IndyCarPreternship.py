@@ -47,7 +47,7 @@ def main():
             race['Overtakes'].append(newEntry)
             for Passing in race['Passings']:
                 if newEntry['PassingTime'] == Passing['PassingTime']:
-                    driverOvertakes[newEntry['TranNr']] = Passing['ElapsedTime'] + 300000 - (newEntry['SecondsBeforeTimeline'] * 1000)
+                    driverOvertakes[newEntry['TranNr']] = Passing['ElapsedTime'] + 300000 - (newEntry['SecondsBeforeTimeline'] * 10000)
                     break
         elif 'CarPassed' in newEntry:
             race['RacePasses'].append(newEntry)
