@@ -98,12 +98,23 @@ def update_racePasses(passing_driver, passed_driver, data, passing_P2P=False, pa
     Parameters:
         data - the dictionary that will be initialized and returned from the function
         driver_list - a data structure containing the transponder number of all the drivers
-    The keys in the "data" dictionary will be the transponder numbers of the drivers.
+    This function will build the dictionary needed by the update_overtakes function. The format of "data" in this function
+    will be made to match the format of data in that function.
+    The keys of the dictionary will be:
+        Transponder_Number - the transponder number of the driver using the overtake button
+        "Laps" - contains a dictionary containing lap numbers corresponding to the laps the driver used the overtake button
+        "TimelineIDs" - a dictionary the next TimelineIDs passed by the driver after pushing the overtake button being the keys
+        "Overtake" - contains a dictionary that will take contain keys for the beginning and end of the driver using overtake mode
+        "Start" - the next TimelineID passed after a driver uses push to pass
+        "End" - the final TimelineID passed while a driver is using push to pass
 '''
 def initialize_overtakes(data, driver_list):
     for Transponder_Number in driver_list:
         if Transponder_Number not in data:
             data[Transponder_Number] = {}
+            data[Transponder_Number]["Laps"] = {}
+            data[Transponder_Number]["TimelineIDs"] = {}
+            data[Transponder_Number]["Overtake"] = {}
 
     return data
 
@@ -114,36 +125,44 @@ def initialize_overtakes(data, driver_list):
         data - he dictionary containing data on overtake statistics which is being updated and returned in this function
         input_data - the data, in the form of a dictionary, that is being added to data
         overtake_num - the number of times the driver has used the overtake button
-
+    This function will update "data" to contain information including, how many times does a driver use overtake mode on each lap,
+    how many times does a driver use overtake mode at each TimelineID on the track, and where does the driver press and release the
+    overtake button each time they use it.
     The data dictionary will need to be in the following format to work properly:
-        overtake_data{
-            Transponder_Number: {input_data},
-            Transponder_Number: {input_data}
+        data{
+            Transponder_Number: {"Laps": {0: 0, 1: 0, ...}, "TimelineIDs": {1: 0, 2: 0, ...}, "Overtake" {1: {"Start": 1, "End": 3}, ...}},
+            Transponder_Number: {"Laps": {0: 0, 1: 0, ...}, "TimelineIDs": {1: 0, 2: 0, ...}, "Overtake" {1: {"Start": 1, "End": 3}, ...}},
             ...,
-            Transponder_Number: {input_data}
+            Transponder_Number: {"Laps": {0: 0, 1: 0, ...}, "TimelineIDs": {1: 0, 2: 0, ...}, "Overtake" {1: {"Start": 1, "End": 3}, ...}}
         }
 
 '''
-def update_overtakes(driver_number, data, input_data, overtake_num):
-    if driver_number not in data:
-        data[driver_number] = {}
-        #TODO: Properly format the input data so it contains all the information needed
-    data[driver_number][overtake_num] = input_data
+def update_overtakes(driver_number, data, lap_number, Timeline_ID):
+    #To Do: add code to update the Overtakes key in the nested dictionaries
+    if lap_number not in data[driver_number]["Laps"]:
+        data[driver_number]["Laps"][lap_number] = 0
+    else:
+        data[driver_number]["Laps"][lap_number] += 1
+    
+    if Timeline_ID not in data[driver_number]["TimelineIDs"]:
+        data[driver_number]["TimelineIDs"][Timeline_ID] = 0
+    else:
+        data[driver_number]["TimelineIDs"][Timeline_ID] += 1
     return data
 
 
 # This function is only being used to test my other functions
 def main():
     driver_list = [1, 2, 3]
-    data = {}
+    #data = {}
     #data = initialize_racePasses(data, driver_list)
     #data = update_racePasses(driver_list[0], driver_list[2], data, True, False)
     #print(data)
-    d = {'a', 'b', 'c'}
-    e = {'d', 'g', 'e'}
-    data = update_overtakes(2123123, data, d, 1)
-    data = update_overtakes(2123123, data, e, 2)
-    print(data)
+    #d = {'a', 'b', 'c'}
+    #e = {'d', 'g', 'e'}
+    #data = update_overtakes(2123123, data, d, 1)
+    #data = update_overtakes(2123123, data, e, 2)
+    #print(data)
 
 if __name__ == '__main__':
     main()
