@@ -154,14 +154,14 @@ def update_overtakes(driver_number, data, lap_number, Timeline_ID):
 # This function is only being used to test my other functions
 def main():
     driver_list = [1, 2, 3]
-    #data = {}
+    data = {}
     #data = initialize_racePasses(data, driver_list)
     #data = update_racePasses(driver_list[0], driver_list[2], data, True, False)
     #print(data)
-    #d = {'a', 'b', 'c'}
-    #e = {'d', 'g', 'e'}
-    #data = update_overtakes(2123123, data, d, 1)
-    #data = update_overtakes(2123123, data, e, 2)
+    d = {'a', 'b', 'c'}
+    e = {'d', 'g', 'e'}
+    data = update_overtakes(2123123, data, d, 1)
+    data = update_overtakes(2123123, data, e, 2)
     #print(data)
 
 if __name__ == '__main__':
