@@ -174,25 +174,44 @@ def checkOvertake(race, PassingID, driverOvertakes):
                 # Update Pass made with certain timeline
                 print(f"Pass Made WITHOUT P2P at Timeline " + str(entry["TimelineID"]));
 
-def main():
-    # Initialize Dictionaries and stdin
-    stream = sys.stdin
+def initializeRaceDictionary():
     race = {}
-    driverOvertakes = {}
 
-    # Read Initial Competitors and Timeline Dictionaries
-    with open('initial.jsonl') as json_file:
-        race = json.load(json_file)
+    race = initializeDriverInfo(race)
 
-    # Initialize Nested Dictionaries
-    newEntry = {}
     race['Passings'] = []
     race['Overtakes'] = []
     race['RacePasses'] = []
+    return race
 
-    # Initialize Additional Overtakes Dictionary To Track 30 Seconds After Last Used Push To Pass For Each Driver
+
+def initializeDriverInfo(race):
+    with open('initial.jsonl') as json_file:
+        race = json.load(json_file)
+
+    return race
+
+def initializeDriverOvertakesDict(race):
+    driverOvertakes = {}
     for driverDict in race['Competitors']:
         driverOvertakes[driverDict['TranNr']] = 0
+
+    return driverOvertakes
+
+
+
+def main():
+    # Initialize Dictionaries and stdin
+    stream = sys.stdin
+   
+    # Initialize Race Dictionary
+    race = initializeRaceDictionary()
+
+    # Initialize newEntry
+    newEntry = {}
+
+    # Initialize driverOvertakes Dictionary
+    driverOvertakes = initializeDriverOvertakesDict(race)
 
     # For Loop Receives One Entry Per Loop From The Generator And Parses It From JSON to a Python Dictionary
     for line in readEntries(stream):
