@@ -154,7 +154,14 @@ def readEntries(stream):
 
     for line in stream:
         yield line
-
+'''
+    checkOvertake
+    This function accesses the given dictionaries to match a certain pass occurring on-track and the time that it occurred to determine if the driver utilized Push to Pass to perform the pass. This function iterates through the race["Passings"] dictionary to find the timeline entry containing the same PassingID.  Then, a comparison is made to determine if the passing driver was aided by Push to Pass. From there, information will be sent to stdout and other statistics functions to provide the user.
+    PARAMETERS:
+        race = the dictionary containing all of the statistics and timeline-generated entries from the race
+        PassingID = the current ID given to the pass that just occurred on-track that can be matched to a particular timeline and ElapsedTime entry in race
+        driverOvertakes = the dictionary that uses the driver transponder numbers as keys and stores the last elapsed time value + 30 seconds of when the driver last used Push to Pass
+'''
 def checkOvertake(race, PassingID, driverOvertakes):
     for entry in race["Passings"]:
         if PassingID == entry["PassingID"]:
