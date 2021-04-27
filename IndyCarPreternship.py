@@ -42,6 +42,7 @@ def initialize_racePasses(data, driver_list):
             data[Transponder_Number]["Overtaken"]["~OppP2P"] = 0
     return data
 
+
 '''
     update_racePasses
     Parameters:
@@ -81,6 +82,7 @@ def update_racePasses(passing_driver, passed_driver, data, passing_P2P=False, pa
 
     return data
 
+
 '''
     initialize_overtakes
     Parameters:
@@ -105,6 +107,7 @@ def initialize_overtakes(data, driver_list):
             data[Transponder_Number]["Overtake"] = {}
 
     return data
+
 
 '''
     update_overtakes
@@ -154,6 +157,8 @@ def readEntries(stream):
 
     for line in stream:
         yield line
+
+
 '''
     checkOvertake
     This function accesses the given dictionaries to match a certain pass occurring on-track and the time that it occurred to determine if the driver utilized Push to Pass to perform the pass. This function iterates through the race["Passings"] dictionary to find the timeline entry containing the same PassingID.  Then, a comparison is made to determine if the passing driver was aided by Push to Pass. From there, information will be sent to stdout and other statistics functions to provide the user.
@@ -174,6 +179,13 @@ def checkOvertake(race, PassingID, driverOvertakes):
                 # Update Pass made with certain timeline
                 print(f"Pass Made WITHOUT P2P at Timeline " + str(entry["TimelineID"]));
 
+
+'''
+    initializeRaceDictionary
+    This function creates the race dictionary that handles all of the input taken in from the timelines around the racetrack.  This function calls the initializeDriverInfo function to initialize the driver and timeline information before the race begins.  It then returns the race dictionary.
+    PARAMETERS:
+        race = the dictionary containing all of the statistics and timeline-generated entries from the race
+'''
 def initializeRaceDictionary():
     race = {}
 
@@ -185,12 +197,43 @@ def initializeRaceDictionary():
     return race
 
 
+'''
+    initializeDriverInfo
+    This function is called within the initializeRaceDictionary function.  This function takes in a file called "initial.jsonl" and parses out the information about the competitors and the timelines around the racetrack.  Then, this function loads that data into the race dictionary and returns it to the other function.
+    PARAMETERS:
+        race = the dictionary containing all of the statistics and timeline-generated entries from the race
+
+    The format of the initial.jsonl file must be as follows:
+    {
+        "Competitors" : [
+            {"FirstName": "Felix", "LastName": "Rosenqvist", "CarNo": "10", "TranNr": 3463610},
+            {"FirstName": "Will", "LastName": "Power", "CarNo": "12", "TranNr": 5596122},
+            ...
+        ],
+        "Timelines" : [
+            {"TimelineID": 1, "Name": "SF", "Order": 0},
+            {"TimelineID": 2, "Name": "SFT", "Order": 1},
+            ...
+        ]
+    }
+'''
 def initializeDriverInfo(race):
     with open('initial.jsonl') as json_file:
         race = json.load(json_file)
 
     return race
 
+
+'''
+    initializeDriverOvertakesDict
+    This function takes in the race dictionary and initializes the driverOvertakes dictionary.  This dictionary will be used to store a value that is 30 seconds after the driver last used Push to Pass.  These values are stored under the corresponding key that is equal to the transponder number of each car.
+    PARAMETERS: 
+        race = the dictionary containing all of the statistics and timeline-generated entries from the race
+        driverOvertakes = the dictionary that contains the transponder number of each car as keys.  Each key contains a value that is 30 seconds more than the last time each driver used Push to Pass.
+
+        The driverOvertakes dictionary is formatted as follows:
+        { 3463610 : 10035000, 5596122 : 25674978, ... }
+'''
 def initializeDriverOvertakesDict(race):
     driverOvertakes = {}
     for driverDict in race['Competitors']:
@@ -199,48 +242,79 @@ def initializeDriverOvertakesDict(race):
     return driverOvertakes
 
 
+'''
+    entryComparisons
+    This function is called from the main function after every line is taken in from stdin.  It essentially sorts the newEntry dictionary to see if it is a "Passings" entry, a "Overtakes" entry, or a "RacePasses" entry.  Then it performs additional checks before appending that dictionary to the correct list.  It also updates the driverOvertakes dictionary every time a new "Overtakes" entry is detected.
+    PARAMETERS:
+        race = the dictionary containing all of the statistics and timeline-generated entries from the race
+        newEntry = the dictionary taken in from stdin that is updated during every iteration
+        driverOvertakes = the dictionary that contains the transponder number of each car as keys.  Each key contains a value that is 30 seconds more than the last time each driver used Push to Pass.
+        
+        The race dictionary will continue to be updated in the following format:
+        {
+            "Competitors" : [
+                {"FirstName": "Felix", "LastName": "Rosenqvist", "CarNo": "10", "TranNr": 3463610},
+                {"FirstName": "Will", "LastName": "Power", "CarNo": "12", "TranNr": 5596122},
+                ...
+            ],
+            "Timelines" : [
+                {"TimelineID": 1, "Name": "SF", "Order": 0},
+                {"TimelineID": 2, "Name": "SFT", "Order": 1},
+                ...
+            ],
+            "Passings" : [
+                {"PassingID": 189954, "PassingTime": 428647957, "TranNr": 4718059, "TimelineID": 1, "Pit": false, "Flag": 1, "ElapsedTime": 2124557, "LapCount": 2, "LeaderLap": 2},
+                ...
+            ],
+            "Overtakes": [
+                {"TranNr": 8193597, "OvertakeNo": 3, "OvertakeRemain": 189, "SecondsOfPush": 3, "SecondsBeforeTimeline": 5, "TimelineID": 1, "Lap": 4, "PassingTime": 430842219},
+                ...
+            ],
+            "RacePasses" : [
+                {"CarNo": "26", "CarPassed": "9", "Lap": 0, "TimelineID": 8, "ForPosition": true, "PassingID": 188308, "Position": 14},
+                ...
+            ]
+        }
+'''
+def entryComparisons(race, newEntry, driverOvertakes):
+    # If Statement Places newEntry in Correct Nested Dictionary with Additional Conditions
+    # This If Statement takes in any newEntry that contains data from cars passing timelines.
+    if 'ElapsedTime' in newEntry:
+
+        # Conditional Statement to Avoid Appending Unnecessary Data to Dictionary
+        if newEntry['ElapsedTime'] >= 0 and newEntry['Flag'] == 1 and not newEntry['Pit']:
+            race['Passings'].append(newEntry)
+
+    # This Elif Statement appends any data associated with Overtakes.
+    elif 'OvertakeNo' in newEntry:
+        race['Overtakes'].append(newEntry)
+
+        # This For Loop checks to find the corresponding Timeline Pass for a car when they use Push to Pass and logs that time with an added 30 seconds into a dictionary.
+        for Passing in race['Passings']:
+            if newEntry['PassingTime'] == Passing['PassingTime']:
+                driverOvertakes[newEntry['TranNr']] = Passing['ElapsedTime'] + 300000 - (newEntry['SecondsBeforeTimeline'] * 10000)
+                break
+
+    # This Elif Statement appends any data associated with Passes
+    elif 'CarPassed' in newEntry:
+        race['RacePasses'].append(newEntry)
+        checkOvertake(race, newEntry["PassingID"], driverOvertakes);
+
+    return race
+
 
 def main():
-    # Initialize Dictionaries and stdin
+    # Initialize stdin and dictionaries
     stream = sys.stdin
-   
-    # Initialize Race Dictionary
     race = initializeRaceDictionary()
-
-    # Initialize newEntry
     newEntry = {}
-
-    # Initialize driverOvertakes Dictionary
     driverOvertakes = initializeDriverOvertakesDict(race)
 
     # For Loop Receives One Entry Per Loop From The Generator And Parses It From JSON to a Python Dictionary
     for line in readEntries(stream):
         newEntry = json.loads(line)
 
-        # If Statement Places newEntry in Correct Nested Dictionary with Additional Conditions
-        # This If Statement takes in any newEntry that contains data from cars passing timelines.
-        if 'ElapsedTime' in newEntry:
-
-            # Conditional Statement to Avoid Appending Unnecessary Data to Dictionary
-            if newEntry['ElapsedTime'] >= 0 and newEntry['Flag'] == 1 and not newEntry['Pit']:
-                race['Passings'].append(newEntry)
-
-        # This Elif Statement appends any data associated with Overtakes.
-        elif 'OvertakeNo' in newEntry:
-            race['Overtakes'].append(newEntry)
-
-            # This For Loop checks to find the corresponding Timeline Pass for a car when they use Push to Pass and logs that time with an added 30 seconds into a dictionary.
-            for Passing in race['Passings']:
-                if newEntry['PassingTime'] == Passing['PassingTime']:
-                    driverOvertakes[newEntry['TranNr']] = Passing['ElapsedTime'] + 300000 - (newEntry['SecondsBeforeTimeline'] * 10000)
-                    break
-
-        # This Elif Statement appends any data associated with Passes
-        elif 'CarPassed' in newEntry:
-            race['RacePasses'].append(newEntry)
-            checkOvertake(race, newEntry["PassingID"], driverOvertakes);
-
-    #print(driverOvertakes)
+        race = entryComparisons(race, newEntry, driverOvertakes)
 
 if __name__ == "__main__":
     main()
