@@ -24,8 +24,10 @@ def max_P2P(data):
 '''
 def max_timeline(overtake_data, driver_number):
     
-    max_val = max(overtake_data[driver_number]["TimelineIDs"], key=overtake_data.get())
-
+    max_val = max(overtake_data[driver_number]["TimelineIDs"].values())
+    max_keys = []
+    for i in overtake_data[driver_number]["TimelineIDs"]:
+        print (i)
     return max_val
 
 
@@ -42,18 +44,14 @@ def max_timeline(overtake_data, driver_number):
 def initialize_lappedPasses(lappedPasses, driver_list):
 
     for Transponder_Number in driver_list:
-        if Transponder_Number not in data:
+        if Transponder_Number not in lappedPasses:
             lappedPasses[Transponder_Number] = {}
             lappedPasses[Transponder_Number]["LappedCar"] = {}
             lappedPasses[Transponder_Number]["LeadCar"] = {}
-            lappedPasses[Transponder_Number]["LappedCar"]["P2P"] = 0
-            lappedPasses[Transponder_Number]["LappedCar"]["~P2P"] = 0
             lappedPasses[Transponder_Number]["LappedCar"]["OppP2P"] = 0
             lappedPasses[Transponder_Number]["LappedCar"]["~OppP2P"] = 0
             lappedPasses[Transponder_Number]["LeadCar"]["P2P"] = 0
             lappedPasses[Transponder_Number]["LeadCar"]["~P2P"] = 0
-            lappedPasses[Transponder_Number]["LeadCar"]["OppP2P"] = 0
-            lappedPasses[Transponder_Number]["LeadCar"]["~OppP2P"] = 0
 
     return lappedPasses
 
@@ -68,14 +66,14 @@ def initialize_lappedPasses(lappedPasses, driver_list):
     This function assumes the lappedPasses dictionary will be in the same form as the dictionary built in
         the initialize_lappedPasses function
 '''
-def update_lappedPasses(lapped_car, lead_car, lappedPasses, use_P2P)
+def update_lappedPasses(lapped_car, lead_car, lappedPasses, use_P2P):
 
     if use_P2P:
-        lappedPasses[lapped_car]["OppP2P"] += 1
-        lappedPasses[lead_car]["P2P"] += 1
+        lappedPasses[lapped_car]["LappedCar"]["OppP2P"] += 1
+        lappedPasses[lead_car]["LeadCar"]["P2P"] += 1
     else:
-        lappedPasses[lapped_car]["~OppP2P"] += 1
-        lappedPasses[lead_car]["~P2P"] += 1
+        lappedPasses[lapped_car]["LappedCar"]["~OppP2P"] += 1
+        lappedPasses[lead_car]["LeadCar"]["~P2P"] += 1
 
     return lappedPasses
 
@@ -105,22 +103,6 @@ def calc_percentage(calc_P2P=False, P2P=0, not_P2P=0):
         return (P2P/total) * 100
 
     return (not_P2P/total) * 100
-
-
-
-'''
-    initialize_passings
-    Parameters:
-        driver_list - a data structure containing the transponder numbers of participating drivers
-        data - the dictionary that is being initialized in this function
-'''
-def initialize_passings(driver_list, data):
-    
-    return data
-
-def update_passings(passing_driver, passed_driver, data):
-
-    return data
 
 
 
@@ -411,8 +393,13 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data):
     # This Elif Statement appends any data associated with Passes
     elif 'CarPassed' in newEntry:
         race['RacePasses'].append(newEntry)
-        P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
-        update_racePasses(newEntry['CarNo'], newEntry['CarPassed'], combined_data["Passes"], P2P_check, False)
+        if newEntry["ForPosition"]:
+            P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
+            update_racePasses(newEntry['CarNo'], newEntry['CarPassed'], combined_data["Passes"], P2P_check, False)
+        else:
+            P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
+            update_lappedPasses(newEntry['CarPassed'], newEntry['CarNo'], combined_data["Lapped Passes"], P2P_check)
+    
     return combined_data
 
 
@@ -434,9 +421,14 @@ def main():
     racePasses_data = {}
     racePasses_data = initialize_racePasses(racePasses_data, driver_list)
 
+
+    lappedPasses_data = {}
+    lappedPasses_data = initialize_lappedPasses(lappedPasses_data, driver_list)
+
     combined_data = {}
     combined_data["Passes"] = racePasses_data
     combined_data["Overtake Mode"] = overtake_data
+    combined_data["Lapped Passes"] = lappedPasses_data
     
     # For Loop Receives One Entry Per Loop From The Generator And Parses It From JSON to a Python Dictionary
     for line in readEntries(stream):
@@ -446,12 +438,16 @@ def main():
     print("Check passes data: ")
     print(combined_data["Passes"])
 
+    print("Check lapped passes data: ")
+    print(combined_data["Lapped Passes"])
+
     print("Check calc_percentage:")
     for i in driver_list:
         print(i)
         print(calc_percentage(True, combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"]))
 
 
+    #max_val = max_timeline(combined_data["Overtake Mode"], "10")
 
 
 
