@@ -299,7 +299,19 @@ def entryComparisons(race, newEntry, driverOvertakes):
     elif 'CarPassed' in newEntry:
         race['RacePasses'].append(newEntry)
         checkOvertake(race, newEntry["PassingID"], driverOvertakes);
+        race = timelineLog(race, newEntry)
 
+    return race
+
+def initializeTimelineLog(race):
+    race['passTimeline'] = {}
+    for i in race['Timelines']:
+        race['passTimeline'][i['TimelineID']] = 0
+
+    return race
+
+def timelineLog(race, newEntry):
+    race['passTimeline'][newEntry['TimelineID']] += 1
     return race
 
 
@@ -308,6 +320,7 @@ def main():
     stream = sys.stdin
     race = initializeRaceDictionary()
     newEntry = {}
+    race = initializeTimelineLog(race)
     driverOvertakes = initializeDriverOvertakesDict(race)
 
     # For Loop Receives One Entry Per Loop From The Generator And Parses It From JSON to a Python Dictionary
@@ -315,6 +328,8 @@ def main():
         newEntry = json.loads(line)
 
         race = entryComparisons(race, newEntry, driverOvertakes)
+
+    print(race['passTimeline'])
 
 if __name__ == "__main__":
     main()
