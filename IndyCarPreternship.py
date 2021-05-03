@@ -329,7 +329,7 @@ def main():
 
         race = entryComparisons(race, newEntry, driverOvertakes)
 
-    print(race['passTimeline'])
+    #print(race['passTimeline'])
 
 if __name__ == "__main__":
     main()
