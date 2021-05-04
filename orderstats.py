@@ -2,6 +2,7 @@
 
 import sys
 import json
+import re
 
 race = {}
 newList = []
@@ -37,4 +38,12 @@ for newEntry in race['Passings']:
     pastEntry['PassingTime'] = newEntry['PassingTime']
 
 for line in newList:
-    print(line)
+    entry = str(line)
+    if "False" in entry:
+        entry = re.sub("False", "false", entry)
+    elif "True" in entry:
+        entry = re.sub("True", "true", entry)
+
+    entry = re.sub(r"\'", r'"', entry)
+
+    print(entry)
