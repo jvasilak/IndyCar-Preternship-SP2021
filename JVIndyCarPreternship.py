@@ -4,6 +4,48 @@ import json
 import sys
 import operator
 
+'''
+    averageLap
+    Parameters:
+        overtake_presses - a dictionary containing information on overtakes        
+    Return value: this function will return the average lap number a driver uses P2P
+    This function assumes the overtake_presses dictionary will be in the same form as the dictionary built in
+        the initialize_overtakes function
+'''
+
+def averageLap(overtake_presses):
+
+	counter = 0
+	avgLap = 0
+
+	for car in overtake_presses:
+		
+		lapNumbers = list(car['Laps'].keys())
+		numOvertakes = list(car['Laps'].values())
+
+		for i in range(len(lapNumbers)):
+			
+			avglap += int(lapNumbers[i]) * numOvertakes[i]
+			counter += numOvertakes[i]
+
+	return float(avglLap) / counter
+
+'''
+    transponder_to_carNo
+    Parameters:
+        driver_info - a dictionary containing information separated by driver, this dictionary must contain "TranNr" and "CarNo" keys for this function to work
+        search_number - the transponder number the function searches for in the dictionary
+    Return value: function returns the Car Number of the car with the matching transponder number, if there is not car with a matching transponder number, the function returns NULL
+    This function searches a dictionary containing driver information to determine the car number that corresponds with a transponder number passed to the function.
+    If the value is found, then the Car Number is returned.
+
+'''
+def transponder_to_carNo(driver_info, search_number):
+    for driver in driver_info:
+        if driver["TranNr"] == search_number:
+            return driver["CarNo"]
+
+    return NULL
 
 '''
     calcP2PPosition
@@ -310,7 +352,7 @@ def initialize_overtakes(overtake_presses, driver_list):
             overtake_presses[Transponder_Number] = {}
             overtake_presses[Transponder_Number]["Laps"] = {}
             overtake_presses[Transponder_Number]["TimelineIDs"] = {}
-            overtake_presses[Transponder_Number]["Overtake"] = {}
+            overtake_presses[Transponder_Number]["Overtake"] = 0
 
     return overtake_presses
 
@@ -334,15 +376,17 @@ def initialize_overtakes(overtake_presses, driver_list):
 
 '''
 def update_overtakes(driver_number, overtake_presses, lap_number, Timeline_ID):
-    if lap_number not in data[driver_number]["Laps"]:
-        overtake_presses[driver_number]["Laps"][lap_number] = 0
+    if lap_number not in overtake_presses[driver_number]["Laps"]:
+        overtake_presses[driver_number]["Laps"][lap_number] = 1
     else:
         overtake_presses[driver_number]["Laps"][lap_number] += 1
     
-    if Timeline_ID not in data[driver_number]["TimelineIDs"]:
-        overtake_presses[driver_number]["TimelineIDs"][Timeline_ID] = 0
+    if Timeline_ID not in overtake_presses[driver_number]["TimelineIDs"]:
+        overtake_presses[driver_number]["TimelineIDs"][Timeline_ID] = 1
     else:
         overtake_presses[driver_number]["TimelineIDs"][Timeline_ID] += 1
+
+    overtake_presses[driver_number]["Overtake"] += 1
     return overtake_presses
 
 
@@ -494,7 +538,7 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data):
     # This Elif Statement appends any data associated with Overtakes.
     elif 'OvertakeNo' in newEntry:
         race['Overtakes'].append(newEntry)
-
+        update_overtakes(transponder_to_carNo(race["Competitors"], newEntry["TranNr"]), combined_data["Overtake Mode"], newEntry["Lap"], newEntry["TimelineID"])
         # This For Loop checks to find the corresponding Timeline Pass for a car when they use Push to Pass and logs that time with an added 30 seconds into a dictionary.
         for Passing in race['Passings']:
             if newEntry['PassingTime'] == Passing['PassingTime']:
@@ -555,6 +599,9 @@ def main():
     print(combined_data["Lapped Passes"])
     print()
 
+    print("Check overtake presses data:")
+    print(combined_data["Overtake Mode"])
+    print()
 
     print("Check calc_percentage true:")
     for i in driver_list:
@@ -601,7 +648,10 @@ def main():
     position_nonP2P_total = calcP2PPosition(combined_data["Passes"], False)
     print(f"Total number of non P2P passes for position = {position_nonP2P_total}")
     print()
-    
+
+    average = averageLap(combined_data["Overtake Mode"])
+    print(f"Average lap overtake pressed by drivers: {average}")
+    print()
     
 
 
