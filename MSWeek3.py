@@ -4,14 +4,36 @@ import json
 import sys
 import operator
 import os
+import time
 
 '''
     displayScreen
 '''
 
-def displayScreen(race, combined_data, newEntry, P2PBool):
+def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     os.system('clear')
+    print('LATEST EVENTS')
     mostRecentEvent(race, newEntry, P2PBool)
+    print()
+    print()
+
+    max_P2P = max_position_P2P(combined_data["Passes"], driver_list)
+    print(f"The highest number of P2P passes made by a driver is {max_P2P}")
+    print()
+
+    max_notP2P = max_position_nonP2P(combined_data["Passes"], driver_list)
+    print(f"The highest number of non P2P passes made by a driver is {max_notP2P}")
+    print()
+
+    maxLappedP2P = max_lapped_P2P(combined_data["Lapped Passes"], driver_list)
+    print(f"The highest number of lapped passes made by a driver using P2P is {maxLappedP2P}")
+    print()
+
+    maxLappednonP2P = max_lapped_nonP2P(combined_data["Lapped Passes"], driver_list)
+    print(f"The highest number of lapped passes made by a driver without using P2P is {maxLappednonP2P}")
+    print()
+
+    time.sleep(0.5)
 
 '''
     mostRecentEvent
@@ -21,20 +43,28 @@ def mostRecentEvent(race, newEntry, P2PBool):
     if 'ForPosition' in newEntry:
         if P2PBool:
             if newEntry['Position'] != 0:
-                race['RaceEvents'].append(f'{race["CarNotoName"][newEntry["CarNo"]]} (#{newEntry["CarNo"]}) passed {race["CarNotoName"][newEntry["CarPassed"]]} (#{newEntry["CarPassed"]}) WITH P2P for P{newEntry["Position"]} at Timeline {newEntry["TimelineID"]}')
+                race['RaceEvents'].append(f'{race["CarNotoName"][newEntry["CarNo"]]} (#{newEntry["CarNo"]}) passed {race["CarNotoName"][newEntry["CarPassed"]]} (#{newEntry["CarPassed"]}) WITH P2P for P{newEntry["Position"]} at Timeline {newEntry["TimelineID"]}.')
             else:
-                race['RaceEvents'].append(f'{race["CarNotoName"][newEntry["CarNo"]]} (#{newEntry["CarNo"]}) lapped {race["CarNotoName"][newEntry["CarPassed"]]} (#{newEntry["CarPassed"]}) WITH P2P at Timeline {newEntry["TimelineID"]}')
+                race['RaceEvents'].append(f'{race["CarNotoName"][newEntry["CarNo"]]} (#{newEntry["CarNo"]}) lapped {race["CarNotoName"][newEntry["CarPassed"]]} (#{newEntry["CarPassed"]}) WITH P2P at Timeline {newEntry["TimelineID"]}.')
         else:
             if newEntry['Position'] != 0:
-                race['RaceEvents'].append(f'{race["CarNotoName"][newEntry["CarNo"]]} (#{newEntry["CarNo"]}) passed {race["CarNotoName"][newEntry["CarPassed"]]} (#{newEntry["CarPassed"]}) WITHOUT P2P for P{newEntry["Position"]} at Timeline {newEntry["TimelineID"]}')
+                race['RaceEvents'].append(f'{race["CarNotoName"][newEntry["CarNo"]]} (#{newEntry["CarNo"]}) passed {race["CarNotoName"][newEntry["CarPassed"]]} (#{newEntry["CarPassed"]}) WITHOUT P2P for P{newEntry["Position"]} at Timeline {newEntry["TimelineID"]}.')
             else:
-                race['RaceEvents'].append(f'{race["CarNotoName"][newEntry["CarNo"]]} (#{newEntry["CarNo"]}) lapped {race["CarNotoName"][newEntry["CarPassed"]]} (#{newEntry["CarPassed"]}) WITHOUT P2P at Timeline {newEntry["TimelineID"]}')
+                race['RaceEvents'].append(f'{race["CarNotoName"][newEntry["CarNo"]]} (#{newEntry["CarNo"]}) lapped {race["CarNotoName"][newEntry["CarPassed"]]} (#{newEntry["CarPassed"]}) WITHOUT P2P at Timeline {newEntry["TimelineID"]}.')
+    elif 'OvertakeNo' in newEntry:
+        carNo = transponder_to_carNo(race['Competitors'], int(newEntry['TranNr']))
+        if newEntry["SecondsOfPush"] != 1:
+            race['RaceEvents'].append(f'{race["CarNotoName"][str(carNo)]} (#{str(carNo)}) has used {newEntry["SecondsOfPush"]} seconds of P2P at Timeline {newEntry["TimelineID"]}.')
+        else:
+            race['RaceEvents'].append(f'{race["CarNotoName"][str(carNo)]} (#{str(carNo)}) has used {newEntry["SecondsOfPush"]} second of P2P at Timeline {newEntry["TimelineID"]}.')
+
 
     if len(race['RaceEvents']) >= 10:
-        for i in range(-10,-1):
+        for i in range(-1,-11,-1):
             print(race['RaceEvents'][i])
     else:
         print(race['RaceEvents'][-1])
+
 
 
 
@@ -143,6 +173,7 @@ def calc_lapped_P2P(lappedPasses, isP2P):
 '''
 def max_position_P2P(racePasses_data, driver_list):
     max_val = 0
+    max_key = driver_list[0]
     for i in driver_list:
         if racePasses_data[i]["Overtaker"]["P2P"] > max_val:
             max_val = racePasses_data[i]["Overtaker"]["P2P"]
@@ -159,6 +190,7 @@ def max_position_P2P(racePasses_data, driver_list):
 '''
 def max_position_nonP2P(racePasses_data, driver_list):
     max_val = 0
+    max_key = driver_list[0]
     for i in driver_list:
         if racePasses_data[i]["Overtaker"]["~P2P"] > max_val:
             max_val = racePasses_data[i]["Overtaker"]["~P2P"]
@@ -173,6 +205,7 @@ def max_position_nonP2P(racePasses_data, driver_list):
 '''
 def max_lapped_P2P(lappedPasses_data, driver_list):
     max_val = 0
+    max_key = driver_list[0]
     for i in driver_list:
         if lappedPasses_data[i]["LeadCar"]["P2P"] > max_val:
             max_val = lappedPasses_data[i]["LeadCar"]["P2P"]
@@ -187,6 +220,7 @@ def max_lapped_P2P(lappedPasses_data, driver_list):
 '''
 def max_lapped_nonP2P(lappedPasses_data, driver_list):
     max_val = 0
+    max_key = driver_list[0]
     for i in driver_list:
         if lappedPasses_data[i]["LeadCar"]["~P2P"] >= max_val:
             max_val = lappedPasses_data[i]["LeadCar"]["~P2P"]
@@ -573,7 +607,7 @@ def initializeDriverOvertakesDict(race):
             ]
         }
 '''
-def entryComparisons(race, newEntry, driverOvertakes, combined_data):
+def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list):
     # If Statement Places newEntry in Correct Nested Dictionary with Additional Conditions
     # This If Statement takes in any newEntry that contains data from cars passing timelines.
     if 'ElapsedTime' in newEntry:
@@ -581,9 +615,11 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data):
         # Conditional Statement to Avoid Appending Unnecessary Data to Dictionary
         if newEntry['ElapsedTime'] >= 0 and newEntry['Flag'] == 1 and not newEntry['Pit']:
             race['Passings'].append(newEntry)
+        return combined_data
 
     # This Elif Statement appends any data associated with Overtakes.
     elif 'OvertakeNo' in newEntry:
+        P2P_check = False
         race['Overtakes'].append(newEntry)
         update_overtakes(transponder_to_carNo(race["Competitors"], newEntry["TranNr"]), combined_data["Overtake Mode"], newEntry["Lap"], newEntry["TimelineID"])
         # This For Loop checks to find the corresponding Timeline Pass for a car when they use Push to Pass and logs that time with an added 30 seconds into a dictionary.
@@ -591,6 +627,7 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data):
             if newEntry['PassingTime'] == Passing['PassingTime']:
                 driverOvertakes[newEntry['TranNr']] = Passing['ElapsedTime'] + 300000 - (newEntry['SecondsBeforeTimeline'] * 10000)
                 break
+
 
     # This Elif Statement appends any data associated with Passes
     elif 'CarPassed' in newEntry:
@@ -602,8 +639,8 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data):
             P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
             update_lappedPasses(newEntry['CarPassed'], newEntry['CarNo'], combined_data["Lapped Passes"], P2P_check)
 
-        displayScreen(race, combined_data, newEntry, P2P_check)
     
+    displayScreen(race, combined_data, newEntry, P2P_check, driver_list)
     return combined_data
 
 
@@ -637,71 +674,8 @@ def main():
     # For Loop Receives One Entry Per Loop From The Generator And Parses It From JSON to a Python Dictionary
     for line in readEntries(stream):
         newEntry = json.loads(line)
-        combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data)
+        combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list)
 
-    #print()
-    #print("Check passes data: ")
-    #print(combined_data["Passes"])
-    #print()
-    
-    #print("Check lapped passes data: ")
-    #print(combined_data["Lapped Passes"])
-    #print()
-
-    #print("Check overtake presses data:")
-    #print(combined_data["Overtake Mode"])
-    #print()
-
-    #print("Check calc_percentage true:")
-    for i in driver_list:
-        percent = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], True)
-        #print(f"Car Number {i}: {percent}%")
-    #print()
-
-    #print("Check calc_percentage false:")
-    for i in driver_list:
-        percent = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], False)
-        #print(f"Car Number {i}: {percent}%")
-    #print()
-
-    max_P2P = max_position_P2P(combined_data["Passes"], driver_list)
-    #print(f"The highest number of P2P passes made by a driver is {max_P2P}")
-    #print()
-
-    max_notP2P = max_position_nonP2P(combined_data["Passes"], driver_list)
-    #print(f"The highest number of non P2P passes made by a driver is {max_notP2P}")
-    #print()
-
-    maxLappedP2P = max_lapped_P2P(combined_data["Lapped Passes"], driver_list)
-    #print(f"The highest number of lapped passes made by a driver using P2P is {maxLappedP2P}")
-    #print()
-
-    maxLappednonP2P = max_lapped_nonP2P(combined_data["Lapped Passes"], driver_list)
-    #print(f"The highest number of lapped passes made by a driver without using P2P is {maxLappednonP2P}")
-    #print()
-
-    #print("Aidan's Functions Tested:")
-    #print()
-    lapped_P2P_total = calc_lapped_P2P(combined_data["Lapped Passes"], True)
-    #print(f"Total Number of P2P lapped passes = {lapped_P2P_total}")
-    #print()
-
-    lapped_notP2P_total = calc_lapped_P2P(combined_data["Lapped Passes"], False)
-    #print(f"Total Number of non P2P lapped passes = {lapped_notP2P_total}")
-    #print()
-
-    position_P2P_total = calcP2PPosition(combined_data["Passes"], True)
-    #print(f"Total number of P2P passes for position = {position_P2P_total}")
-    #print()
-
-    position_nonP2P_total = calcP2PPosition(combined_data["Passes"], False)
-    #print(f"Total number of non P2P passes for position = {position_nonP2P_total}")
-    #print()
-
-    #average = averageLap(combined_data["Overtake Mode"])
-    #print(f"Average lap overtake pressed by drivers: {average}")
-    #print()
-    
 
 
 if __name__ == '__main__':
