@@ -84,7 +84,7 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
 
     # Display Number of Passes occurring at each timeline
     print("TIMELINE STATISTICS")
-    print("                 TIMELINE :   # PASSES     %")
+    print("                 TIMELINE :   # PASSES      %")
     maxTimelinePasses(race)
     print()
 
@@ -742,6 +742,21 @@ def initializeTotalPasses(race, driver_list):
         race['max_timelines'][str(timeline['TimelineID'])] = 0
     return race
 
+'''
+    print_to_stream
+    This function is called from the main function at the end of program execution to create a txt file containing the final results of the race that can be analyzed by IndyCar and distributed to racing teams and other stakeholders
+    PARAMETERS:
+        NONE
+    A text file (completerace.txt) will be created by calling the displayScreen function.
+'''
+def print_to_stream(race, combined_data, newEntry, P2P_check, driver_list):
+    original_stdout = sys.stdout
+    with open('completerace.txt', 'w') as f:
+        sys.stdout = f
+        displayScreen(race, combined_data, newEntry, P2P_check, driver_list)
+        sys.stdout = original_stdout
+        displayScreen(race, combined_data, newEntry, P2P_check, driver_list)
+
 
 def main():
     # Initialize stdin and dictionaries
@@ -777,6 +792,7 @@ def main():
         newEntry = json.loads(line)
         combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list)
 
+    print_to_stream(race, combined_data, {}, False, driver_list)
 
 
 if __name__ == '__main__':
