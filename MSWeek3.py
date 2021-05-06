@@ -12,28 +12,57 @@ import time
 
 def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     os.system('clear')
+    print('NTT INDYCAR SERIES')
+    print()
     print('LATEST EVENTS')
     mostRecentEvent(race, newEntry, P2PBool)
     print()
     print()
 
     max_P2P = max_position_P2P(combined_data["Passes"], driver_list)
-    print(f"The highest number of P2P passes made by a driver is {max_P2P}")
+    for key, value in max_P2P.items():
+        if value != 0:
+            print(f'MOST P2P PASSES: {race["CarNotoName"][str(key)]} - {value}')
+        else:
+            print(f'MOST P2P PASSES: NONE')
     print()
 
     max_notP2P = max_position_nonP2P(combined_data["Passes"], driver_list)
-    print(f"The highest number of non P2P passes made by a driver is {max_notP2P}")
+    for key, value in max_notP2P.items():
+        if value != 0:
+            print(f'MOST NON-P2P Passes: {race["CarNotoName"][str(key)]} - {value}')
+        else:
+            print(f'MOST NON-P2P PASSES: NONE')
+
     print()
 
     maxLappedP2P = max_lapped_P2P(combined_data["Lapped Passes"], driver_list)
-    print(f"The highest number of lapped passes made by a driver using P2P is {maxLappedP2P}")
+    for key, value in maxLappedP2P.items():
+        if value != 0:
+            print(f'MOST P2P LAPPED PASSES: {race["CarNotoName"][str(key)]} - {value}')
+        else:
+            print(f'MOST P2P LAPPED PASSES: NONE')
     print()
 
     maxLappednonP2P = max_lapped_nonP2P(combined_data["Lapped Passes"], driver_list)
-    print(f"The highest number of lapped passes made by a driver without using P2P is {maxLappednonP2P}")
+    for key, value in maxLappednonP2P.items():
+        if value != 0:
+            print(f'MOST NON-P2P LAPPED PASSES: {race["CarNotoName"][str(key)]} - {value}')
+        else:
+            print(f'MOST NON-P2P LAPPED PASSES: NONE')
     print()
 
-    time.sleep(0.5)
+    print(f'TOTAL NUMBER OF PASSES: {len(race["RacePasses"])}')
+    print()
+
+    print(f'PASSING PERCENTAGES BY DRIVER')
+    print(f'                   DRIVER:   P2P    NON-P2P')
+    for i in driver_list:
+        percent = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], True)
+        percentNonP2P = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], False)
+        print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%      {round(percentNonP2P)}%')
+    print()
+
 
 '''
     mostRecentEvent
@@ -318,7 +347,7 @@ def update_lappedPasses(lapped_car, lead_car, lappedPasses, use_P2P):
 def calc_percentage(P2P=0, not_P2P=0, calc_P2P=False):
     totalPasses = not_P2P + P2P
     if totalPasses == 0:
-        print("Error: No pass data available")
+        #print("Error: No pass data available")
         return 0
 
 
