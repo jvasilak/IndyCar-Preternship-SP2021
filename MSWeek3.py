@@ -55,12 +55,13 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     print(f'TOTAL NUMBER OF PASSES: {len(race["RacePasses"])}')
     print()
 
-    print(f'PASSING PERCENTAGES BY DRIVER')
-    print(f'                   DRIVER:   P2P    NON-P2P')
+    print(f'INDIVIDUAL DRIVER STATISTICS')
+    print(f'                           % PASSES FOR POSITION')
+    print(f'                   DRIVER:   P2P       NON-P2P        TOTAL PASSES        AVG LAP # USE OF P2P')
     for i in driver_list:
         percent = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], True)
         percentNonP2P = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], False)
-        print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%      {round(percentNonP2P)}%')
+        print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%         {round(percentNonP2P)}%               {race["TotalPasses"][str(i)]}        ')
     print()
 
 
@@ -95,7 +96,11 @@ def mostRecentEvent(race, newEntry, P2PBool):
         print(race['RaceEvents'][-1])
 
 
-
+'''
+    maxTimelinePasses
+'''
+def maxTimelinePasses(race):
+    #START HERE
 
 '''
     averageLap
@@ -516,14 +521,8 @@ def checkOvertake(race, PassingID, driverOvertakes):
     for entry in race["Passings"]:
         if PassingID == entry["PassingID"]:
             if entry["ElapsedTime"] < driverOvertakes[entry["TranNr"]]:
-                # Update Pass Made with Push 2 Pass Dictionary
-                # Update Pass made with certain timeline
-                #print(f"Pass Made With P2P at Timeline " + str(entry["TimelineID"]))
                 return True
             else:
-                # Update Pass Made without Push 2 Pass Dictionary
-                # Update Pass made with certain timeline
-                #print(f"Pass Made WITHOUT P2P at Timeline " + str(entry["TimelineID"]));
                 return False
 
 
@@ -539,6 +538,9 @@ def initializeRaceDictionary():
     race = initializeDriverInfo(race)
 
     race = initializeCarNotoName(race)
+
+    race['TotalPasses'] = {}
+    race['max_timelines'] = {}
 
     race['Passings'] = []
     race['Overtakes'] = []
@@ -661,6 +663,8 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list
     # This Elif Statement appends any data associated with Passes
     elif 'CarPassed' in newEntry:
         race['RacePasses'].append(newEntry)
+        race['TotalPasses'][str(newEntry['CarNo'])] += 1
+        race['max_timelines'][str(newEntry['TimelineID'])] += 1
         if newEntry["ForPosition"]:
             P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
             update_racePasses(newEntry['CarNo'], newEntry['CarPassed'], combined_data["Passes"], P2P_check, False)
@@ -671,6 +675,17 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list
     
     displayScreen(race, combined_data, newEntry, P2P_check, driver_list)
     return combined_data
+
+
+'''
+    initializeTotalPasses
+'''
+def initializeTotalPasses(race, driver_list):
+    for num in driver_list:
+        race['TotalPasses'][str(num)] = 0
+    for timeline in race['Timelines']:
+        race['max_timelines'][str(timeline['TimelineID'])] = 0
+    return race
 
 
 def main():
@@ -684,6 +699,8 @@ def main():
 
     newEntry = {}
     driverOvertakes = initializeDriverOvertakesDict(race)
+
+    race = initializeTotalPasses(race, driver_list)
 
     overtake_data = {}
     overtake_data = initialize_overtakes(overtake_data, driver_list)
