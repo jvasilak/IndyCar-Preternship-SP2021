@@ -74,11 +74,12 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     # Percentage of Passes for Position, Total Number of Passes, and Avg Lab use of P2P
     print(f'INDIVIDUAL DRIVER STATISTICS')
     print(f'                           % PASSES FOR POSITION')
-    print(f'                   DRIVER:   P2P       NON-P2P        TOTAL PASSES        AVG LAP # USE OF P2P')
+    print(f'                   DRIVER:   P2P       NON-P2P        TOTAL PASSES        AVG LAP # USE OF P2P          P2P LEFT')
     for i in driver_list:
         percent = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], True)
         percentNonP2P = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], False)
-        print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%         {round(percentNonP2P)}%               {race["TotalPasses"][str(i)]}        ')
+        average = averageLap(combined_data["Overtake Mode"], i)
+        print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%         {round(percentNonP2P)}%               {race["TotalPasses"][str(i)]}                      {round(average)}')
     print(f'                                                   TOTAL: {len(race["RacePasses"])}')
     print()
 
@@ -87,7 +88,6 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     print("                 TIMELINE :   # PASSES      %")
     maxTimelinePasses(race)
     print()
-    time.sleep(0.1)
 
 
 '''
@@ -149,22 +149,19 @@ def maxTimelinePasses(race):
         the initialize_overtakes function
 '''
 
-def averageLap(overtake_presses):
+def averageLap(overtake_presses, driver_number):
 
-	counter = 0
-	avgLap = 0
+    totalLaps = 0
+    keys = list(overtake_presses[driver_number]["Laps"].keys())
+    iterator = 0
+    for i in overtake_presses[driver_number]["Laps"]:
+        totalLaps += (keys[iterator] + 1) * overtake_presses[driver_number]["Laps"][i]
+        iterator += 1
 
-	for car in overtake_presses:
-		
-		lapNumbers = list(car['Laps'].keys())
-		numOvertakes = list(car['Laps'].values())
-
-		for i in range(len(lapNumbers)):
-			
-			avglap += int(lapNumbers[i]) * numOvertakes[i]
-			counter += numOvertakes[i]
-
-	return float(avglLap) / counter
+    if overtake_presses[driver_number]["Overtake"] > 0:
+        return totalLaps / overtake_presses[driver_number]["Overtake"]
+    else:
+        return 0
 
 '''
     transponder_to_carNo
