@@ -87,6 +87,7 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     print("                 TIMELINE :   # PASSES      %")
     maxTimelinePasses(race)
     print()
+    time.sleep(0.1)
 
 
 '''

@@ -11,7 +11,7 @@ racePassingID = []
 currentTime = 0
 
 with open('2019RoadAmerica.json') as json_file:
-            race = json.load(json_file)
+    race = json.load(json_file)
 
 for newEntry in race['Overtakes']:
     overtakePassingTime.append(newEntry['PassingTime'])
