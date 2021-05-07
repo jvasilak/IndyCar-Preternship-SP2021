@@ -79,7 +79,8 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
         percent = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], True)
         percentNonP2P = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], False)
         average = averageLap(combined_data["Overtake Mode"], i)
-        print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%         {round(percentNonP2P)}%               {race["TotalPasses"][str(i)]}                      {round(average)}')
+        secP2PLeft = P2PLeft(race, i)
+        print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%         {round(percentNonP2P)}%               {race["TotalPasses"][str(i)]}                      {round(average)}                       {secP2PLeft}')
     print(f'                                                   TOTAL: {len(race["RacePasses"])}')
     print()
 
@@ -179,6 +180,19 @@ def transponder_to_carNo(driver_info, search_number):
             return driver["CarNo"]
 
     return NULL
+'''
+    P2PLeft
+    This function returns the number of seconds remaining of P2P for a certain driver
+    PARAMETERS:
+        race - dictionary containing all racing statistics
+        driver_number - Car Number
+    If a driver has used Push to Pass, his or her most recent entry will be found.  The number of seconds of Push to Pass remaining will be returned, or 200 will be returned if no entries are found for that driver
+'''
+def P2PLeft(race, driver_number):
+    for entry in reversed(race["Overtakes"]):
+        if driver_number == transponder_to_carNo(race["Competitors"], entry["TranNr"]):
+            return entry["OvertakeRemain"]
+    return 200
 
 '''
     calcP2PPosition
