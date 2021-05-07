@@ -30,8 +30,9 @@ for newEntry in race['Passings']:
     for i in range(0,len(overtakePassingTime)):
         if overtakePassingTime[i] < pastEntry['PassingTime']:
             continue
-        elif overtakePassingTime[i] <= newEntry['PassingTime']:
+        elif overtakePassingTime[i] == newEntry['PassingTime']:
             newList.append(race['Overtakes'][i])
+            break
         elif overtakePassingTime[i] > newEntry['PassingTime']:
             break
 
