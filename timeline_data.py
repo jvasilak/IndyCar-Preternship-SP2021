@@ -14,12 +14,10 @@ def best_timeline(overtake_data, TimelineID):
     max_val = 0
     driver_numbers = []
     for driver in overtake_data:
-        if overtake_data[driver]["TimelineIDs"][TimelineID] not in overtake_data:
-            continue
-
-        if(max_val <= overtake_data[driver]["TimelineIDs"][TimelineID]):
-            max_val = overtake_data[driver]["TimelineIDs"][TimelineID]
-            driver_numbers.append(driver)
+        if TimelineID in overtake_data[driver]["TimelineIDs"]:
+            if(max_val <= overtake_data[driver]["TimelineIDs"][TimelineID]):
+                max_val = overtake_data[driver]["TimelineIDs"][TimelineID]
+                driver_numbers.append(driver)
 
     if(max_val == 0):
         print(f"No overtake presses recorded at checkpoint {TimelineID}")
