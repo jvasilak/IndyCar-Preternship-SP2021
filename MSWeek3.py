@@ -80,8 +80,9 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
         percentNonP2P = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], False)
         average = averageLap(combined_data["Overtake Mode"], i)
         secP2PLeft = P2PLeft(race, i)
-        print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%         {round(percentNonP2P)}%               {race["TotalPasses"][str(i)]}                      {round(average)}                       {secP2PLeft}')
-    print(f'                                                   TOTAL: {len(race["RacePasses"])}')
+        #print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%         {round(percentNonP2P)}%               {race["TotalPasses"][str(i)]}                      {round(average)}                       {secP2PLeft}')
+        print(f'{race["CarNotoName"][str(i)]:>25}:{round(percent):>5}%{round(percentNonP2P):>11}%{race["TotalPasses"][str(i)]:>17}{round(average):>23}{secP2PLeft:>26}')
+    print(f'                                                    TOTAL: {len(race["RacePasses"])}')
     print()
 
     # Display Number of Passes occurring at each timeline
@@ -89,10 +90,6 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     print("                 TIMELINE :   # PASSES      %")
     maxTimelinePasses(race)
     print()
-
-    max_dict = max_timeline(combined_data["Passes"], driver_list)
-    print(max_dict)
-    time.sleep(0.2)
 
 
 '''
@@ -143,7 +140,7 @@ def mostRecentEvent(race, newEntry, P2PBool):
 def maxTimelinePasses(race):
     for timeline, num in race['max_timelines'].items():
         if num != 0:
-            print(f'{timeline:>25} :      {num}      {round(num/len(race["RacePasses"])*100):>4}%')
+            print(f'{timeline:>25} :{num:>7}{round(num/len(race["RacePasses"])*100):>10}%')
 
 '''
     averageLap
@@ -705,6 +702,7 @@ def initializeDriverOvertakesDict(race):
         }
 '''
 def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list):
+    P2P_check = False
     # If Statement Places newEntry in Correct Nested Dictionary with Additional Conditions
     # This If Statement takes in any newEntry that contains data from cars passing timelines.
     if 'ElapsedTime' in newEntry:
@@ -728,15 +726,19 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list
 
     # This Elif Statement appends any data associated with Passes
     elif 'CarPassed' in newEntry:
-        race['RacePasses'].append(newEntry)
-        race['TotalPasses'][str(newEntry['CarNo'])] += 1
-        race['max_timelines'][str(newEntry['TimelineID'])] += 1
-        if newEntry["ForPosition"]:
-            P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
-            update_racePasses(newEntry['CarNo'], newEntry['CarPassed'], combined_data["Passes"], P2P_check, False)
-        else:
-            P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
-            update_lappedPasses(newEntry['CarPassed'], newEntry['CarNo'], combined_data["Lapped Passes"], P2P_check)
+        for entry in race["Passings"]:
+            if entry["PassingID"] == newEntry["PassingID"] and not entry["Pit"]:
+                race['RacePasses'].append(newEntry)
+                race['TotalPasses'][str(newEntry['CarNo'])] += 1
+                race['max_timelines'][str(newEntry['TimelineID'])] += 1
+                if newEntry["ForPosition"]:
+                    P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
+                    update_racePasses(newEntry['CarNo'], newEntry['CarPassed'], combined_data["Passes"], P2P_check, False)
+                    break
+                else:
+                    P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
+                    update_lappedPasses(newEntry['CarPassed'], newEntry['CarNo'], combined_data["Lapped Passes"], P2P_check)
+                    break
 
     
     displayScreen(race, combined_data, newEntry, P2P_check, driver_list)
