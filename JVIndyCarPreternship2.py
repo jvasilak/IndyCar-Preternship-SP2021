@@ -204,6 +204,34 @@ def max_timeline(overtake_data, driver_number):
         max_dict[i] = max_val
     return max_dict
 
+'''
+    best_timeline
+    Parameters:
+        overtake_data - the dictionary containing information on overtake presses for all drivers
+        TimelineID - the number of the checkpoint being checked
+    Return Value - this function returns a dictionary containg a driver number and the number of overtakes completed by the
+        driver at the checkpoint number passed to this function
+    This function will compare all drivers' statistics regarding overtake presses at a certain timeline to determine
+        which driver has used it the most at a specific timeline
+    
+'''
+def best_timeline(overtake_data, TimelineID):
+    return_dictionary = {}
+    max_val = 0
+    driver_numbers = []
+    for driver in overtake_data:
+        if TimelineID in overtake_data[driver]["TimelineIDs"]:
+            if(max_val <= overtake_data[driver]["TimelineIDs"][TimelineID]):
+                max_val = overtake_data[driver]["TimelineIDs"][TimelineID]
+                driver_numbers.append(driver)
+
+    if(max_val == 0):
+        print(f"No overtake presses recorded at checkpoint {TimelineID}")
+
+    for driver in driver_numbers:
+        return_dictionary[driver] = max_val
+    return return_dictionary
+
 
 
 '''
@@ -656,26 +684,26 @@ def run_tests(combined_data):
     print()
     
 def week_3_tests(combined_data, race):
-    average = averageLap(combined_data["Overtake Mode"], '10')
-    print()
-    print(f"Average lap overtake pressed by car number 10: {average}")
-    print()
+    #average = averageLap(combined_data["Overtake Mode"], '10')
+    #print()
+    #print(f"Average lap overtake pressed by car number 10: {average}")
+    #print()
 
     print("Check overtake presses data:")
     print(combined_data["Overtake Mode"])
     print()
 
-    print("Testing Transponder to CarNo conversion:")
-    print(transponder_to_carNo(race["Competitors"], 5596122))
-    print()
+    #print("Testing Transponder to CarNo conversion:")
+    #print(transponder_to_carNo(race["Competitors"], 5596122))
+    #print()
 
-    print("Testing Transponder to CarNo failure:")
-    print(transponder_to_carNo(race["Competitors"], 100))
-    print()
+    #print("Testing Transponder to CarNo failure:")
+    #print(transponder_to_carNo(race["Competitors"], 100))
+    #print()
 
-    print("Testing Max timeline:")
-    print(max_timeline(combined_data["Overtake Mode"], '10'))
-    print()
+    #print("Testing Max timeline:")
+    #print(max_timeline(combined_data["Overtake Mode"], '10'))
+    #print()
     
 
 def main():
@@ -712,6 +740,9 @@ def main():
 
     #run_tests(combined_data)
     week_3_tests(combined_data, race)
+    data = {}
+    data = best_timeline(combined_data["Overtake Mode"], 5)
+    print(data)
 
 
 if __name__ == '__main__':
