@@ -23,7 +23,7 @@ def averageLap(overtake_presses, driver_number):
         totalLaps += (keys[iterator] + 1) * overtake_presses[driver_number]["Laps"][i]
         iterator += 1
 
-    return totalLaps / overtake_presses[driver_number]["Overtake"]
+    return totalLaps / overtake_presses[driver_number]["Overtake Presses"]
 
 '''
     transponder_to_carNo
@@ -197,9 +197,12 @@ def max_timeline(overtake_data, driver_number):
         if overtake_data[driver_number]["TimelineIDs"][i] == max_val:
             max_keys.append(i)
     max_dict = {}
-    max_dict["Key(s)"] = max_keys
-    max_dict["Value"] = max_val
+    #max_dict["Key(s)"] = max_keys
+    for i in max_keys:
+        max_dict[i] = max_val
+    #max_dict["Value"] = max_val
     return max_dict
+
 
 
 '''
@@ -707,7 +710,7 @@ def main():
         combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data)
 
     #run_tests(combined_data)
-    #week_3_tests(combined_data, race)
+    week_3_tests(combined_data, race)
 
 
 if __name__ == '__main__':
