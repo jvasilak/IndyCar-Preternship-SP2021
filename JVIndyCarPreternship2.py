@@ -22,8 +22,10 @@ def averageLap(overtake_presses, driver_number):
     for i in overtake_presses[driver_number]["Laps"]:
         totalLaps += (keys[iterator] + 1) * overtake_presses[driver_number]["Laps"][i]
         iterator += 1
-
-    return totalLaps / overtake_presses[driver_number]["Overtake Presses"]
+    return_dictionary = {}
+    return_dictionary["Car Number"] = driver_number
+    return_dictionary["Average Lap"] = totalLaps / overtake_presses[driver_number]["Overtake Presses"]
+    return return_dictionary
 
 '''
     transponder_to_carNo
@@ -197,10 +199,9 @@ def max_timeline(overtake_data, driver_number):
         if overtake_data[driver_number]["TimelineIDs"][i] == max_val:
             max_keys.append(i)
     max_dict = {}
-    #max_dict["Key(s)"] = max_keys
+    max_dict["Car Number"] = driver_number
     for i in max_keys:
         max_dict[i] = max_val
-    #max_dict["Value"] = max_val
     return max_dict
 
 
