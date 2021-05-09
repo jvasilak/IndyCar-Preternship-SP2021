@@ -74,13 +74,12 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     # Percentage of Passes for Position, Total Number of Passes, and Avg Lab use of P2P
     print(f'INDIVIDUAL DRIVER STATISTICS')
     print(f'                           % PASSES FOR POSITION')
-    print(f'                   DRIVER:   P2P       NON-P2P        TOTAL PASSES        AVG LAP # USE OF P2P          P2P LEFT')
+    print(f'                   DRIVER:   P2P       NON-P2P        TOTAL PASSES        AVG LAP # USE OF P2P          P2P LEFT           BEST TIMELINE')
     for i in driver_list:
         percent = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], True)
         percentNonP2P = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], False)
         average = averageLap(combined_data["Overtake Mode"], i)
         secP2PLeft = P2PLeft(race, i)
-        #print(f'{race["CarNotoName"][str(i)]:>25}:   {round(percent)}%         {round(percentNonP2P)}%               {race["TotalPasses"][str(i)]}                      {round(average)}                       {secP2PLeft}')
         print(f'{race["CarNotoName"][str(i)]:>25}:{round(percent):>5}%{round(percentNonP2P):>11}%{race["TotalPasses"][str(i)]:>17}{round(average):>23}{secP2PLeft:>26}')
     print(f'                                                    TOTAL: {len(race["RacePasses"])}')
     print()
