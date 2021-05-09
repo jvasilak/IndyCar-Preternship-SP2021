@@ -39,7 +39,7 @@ def transponder_to_carNo(driver_info, search_number):
         if driver["TranNr"] == search_number:
             return driver["CarNo"]
 
-    return NULL
+    return -1
 
 '''
     calcP2PPosition
@@ -99,7 +99,12 @@ def calc_lapped_P2P(lappedPasses, isP2P):
 '''
     max_position_P2P
     Parameters:
-        racePasses_data - a dictionary containing information
+        racePasses_data - a dictionary containing information about driver overtakes for position
+        driver_list - a list structure containing the car numbers of drivers
+    Return value: the function will return a dictionary containing the driver number and number of overtakes completed
+        using Push 2 Pass
+    This function parses through the racePasses_data dictionary and records and returns the driver with the most Push 2
+        Pass overtakes for position, as well as the number of overtakes completed by the driver
 '''
 def max_position_P2P(racePasses_data, driver_list):
     max_val = 0
@@ -115,7 +120,12 @@ def max_position_P2P(racePasses_data, driver_list):
 '''
     max_position_nonP2P
     Parameters:
-        racePasses_data - a dictionary containing information
+        racePasses_data - a dictionary containing information about driver overtakes for position
+        driver_list - a list structure containing the car numbers of drivers
+    Return value: the function will return a dictionary containing the driver number and number of overtakes completed
+        without using Push 2 Pass
+    This function parses through the racePasses_data dictionary and records and returns the driver with the most non 
+        Push 2 Pass overtakes for position, as well as the number of overtakes completed by the driver
 '''
 def max_position_nonP2P(racePasses_data, driver_list):
     max_val = 0
@@ -130,6 +140,12 @@ def max_position_nonP2P(racePasses_data, driver_list):
 
 '''
     max_lapped_P2P
+    Parameters:
+        lappedPasses_data - a dictionary containing information about lapped passes for each driver
+        driver_list - a list structure containing the car numbers of drivers
+    Return Value: this function returns a dictionary with the driver with the most lapped passes using P2P, the key is
+        the driver's car number and the value is the number of lapped passes completed
+    
 '''
 def max_lapped_P2P(lappedPasses_data, driver_list):
     max_val = 0
@@ -144,6 +160,12 @@ def max_lapped_P2P(lappedPasses_data, driver_list):
 
 '''
     max_lapped_nonP2P
+    Parameters:
+        lappedPasses_data - a dictionary containing information about lapped passes for each driver
+        driver_list - a list structure containing the car numbers of drivers
+    Return Value: this function returns a dictionary with a single entry, where the key is the car number of the driver
+        with the most lapped passes without using Push to Pass
+    
 '''
 def max_lapped_nonP2P(lappedPasses_data, driver_list):
     max_val = 0
@@ -159,9 +181,9 @@ def max_lapped_nonP2P(lappedPasses_data, driver_list):
 '''
 	max_timeline
 	Parameters:
-			overtake_data - a dictionary passes to the function containing data concerning the number of times drivers used 
+			overtake_data - a dictionary passed to the function containing data on the number of times drivers used 
 				overtake mode at a checkpoint on track
-			driver_number - the transponder number referring to the driver's data the function will be checking
+			driver_number - the car number referring to the driver's data the function will be checking
 	Return value - this function returns a dictionary with single key, being the number corresponding to a checkpoint, 
 		and value, the number of times overtake mode is used at that checkpoint
 	This function will calculate the maximum value in the overtake_data[driver_number]["TimelineIDs"] dictionary and 
@@ -187,31 +209,44 @@ def max_timeline(overtake_data, driver_number):
 		driver_list - a data structure containing the transponder numbers of participating drivers
 	The function will return the "lappedPasses" dictionary after its is initialized.
 	The lappedPasses dictionary is initialized in the following format:
-		 
-
+		 lappedPasses{
+             Car_Number: {"LappedCar": {"OppP2P": 0, "~OppP2P": 0}, "LeadCar": {"P2P": 0, "~P2P": 0}},
+             Car_Number: {"LappedCar": {"OppP2P": 0, "~OppP2P": 0}, "LeadCar": {"P2P": 0, "~P2P": 0}},
+            ... 
+             Car_Number: {"LappedCar": {"OppP2P": 0, "~OppP2P": 0}, "LeadCar": {"P2P": 0, "~P2P": 0}}
+         }
+    The keys of the lappedPasses dictionary are:
+        Car_Number - the number assigned to the car
+        LappedCar - denotes situations where Car_Number is the car is being passed
+        LeadCar - denotes situations where Car_Number is the car passing the other car
+        OppP2P - occurences when the other car is using P2P
+        ~OppP2P - occurences when the other car is not using P2P
+        P2P - occurences when Car_Number is using P2P
+        ~P2P - occurences when Car_Number is not using P2P
 '''
 def initialize_lappedPasses(lappedPasses, driver_list):
 
-    for Transponder_Number in driver_list:
-        if Transponder_Number not in lappedPasses:
-            lappedPasses[Transponder_Number] = {}
-            lappedPasses[Transponder_Number]["LappedCar"] = {}
-            lappedPasses[Transponder_Number]["LeadCar"] = {}
-            lappedPasses[Transponder_Number]["LappedCar"]["OppP2P"] = 0
-            lappedPasses[Transponder_Number]["LappedCar"]["~OppP2P"] = 0
-            lappedPasses[Transponder_Number]["LeadCar"]["P2P"] = 0
-            lappedPasses[Transponder_Number]["LeadCar"]["~P2P"] = 0
+    for Car_Number in driver_list:
+        if Car_Number not in lappedPasses:
+            lappedPasses[Car_Number] = {}
+            lappedPasses[Car_Number]["LappedCar"] = {}
+            lappedPasses[Car_Number]["LeadCar"] = {}
+            lappedPasses[Car_Number]["LappedCar"]["OppP2P"] = 0
+            lappedPasses[Car_Number]["LappedCar"]["~OppP2P"] = 0
+            lappedPasses[Car_Number]["LeadCar"]["P2P"] = 0
+            lappedPasses[Car_Number]["LeadCar"]["~P2P"] = 0
 
     return lappedPasses
 
 '''
     update_lappedPasses
     Parameters:
-        lapped_car - the number of the driver who is being lapped
-        lead_car - the number of the driver who is passing the lapped car
+        lapped_car - the car number of the driver who is being lapped
+        lead_car - the transponder number of the driver who is passing the lapped car
         lappedPasses - a dictionary containing information on lapped Passes
         use_P2P - a boolean variable, denotes if the passing driver has push to pass enabled
     Return value: this function will return an updated version of the lappedPasses dictionary
+    The values and keys updated in the dictionary will be determined by values passed to the function.
     This function assumes the lappedPasses dictionary will be in the same form as the dictionary built in
         the initialize_lappedPasses function
 '''
@@ -237,7 +272,6 @@ def update_lappedPasses(lapped_car, lead_car, lappedPasses, use_P2P):
     The value returned by this function is the percentage of passes completed either using or not using Push to Pass, depending on the calc_P2P variable.
 		The return value is a double value which should be between 0 and 100.
 		
-		DRIVER_P2P_Percentage = calc_percentage(True, P2P=data[TransponderNumber][Overtaker][P2P], total_passes=)
 '''
 
 
@@ -257,11 +291,12 @@ def calc_percentage(P2P=0, not_P2P=0, calc_P2P=False):
 '''
     initialize_racePasses
     Parameters:
-        data - the dictionary that is being initialized in this function
+        racePasses - the dictionary that is being initialized in this function
         driver_list - a data structure containing the transponder numbers of participating drivers
-    This function will initialize the data dictionary, putting it in the formatt used by the update_racePasses function.
-    Within the dictionary, there are multiple nested dictionaries.
-    The keys of the dictionary are:
+    This function will initialize the racePasses dictionary, putting it in the format used by the update_racePasses function.
+    Within this dictionary, there are multiple nested dictionaries.
+    The keys of the racePasses are:
+        Car_Number - the dictionary is initially divided by car number to separate data from each driver
         Overtaker - contains data regarding instances when this driver is the one doing the overtaking
         Overtaken - contains data regarding instances when this driver is the one being overtaken
         P2P - situations, either where the driver is overtaking another driver or is being overtaken, where Push to Pass is active for this driver
@@ -271,26 +306,26 @@ def calc_percentage(P2P=0, not_P2P=0, calc_P2P=False):
 '''
 def initialize_racePasses(racePasses, driver_list):
 
-    for Transponder_Number in driver_list:
-        if Transponder_Number not in racePasses:
-            racePasses[Transponder_Number] = {}
-            racePasses[Transponder_Number]["Overtaker"] = {}
-            racePasses[Transponder_Number]["Overtaken"] = {}
-            racePasses[Transponder_Number]["Overtaker"]["P2P"] = 0
-            racePasses[Transponder_Number]["Overtaker"]["~P2P"] = 0
-            racePasses[Transponder_Number]["Overtaker"]["OppP2P"] = 0
-            racePasses[Transponder_Number]["Overtaker"]["~OppP2P"] = 0
-            racePasses[Transponder_Number]["Overtaken"]["P2P"] = 0
-            racePasses[Transponder_Number]["Overtaken"]["~P2P"] = 0
-            racePasses[Transponder_Number]["Overtaken"]["OppP2P"] = 0
-            racePasses[Transponder_Number]["Overtaken"]["~OppP2P"] = 0
+    for Car_Number in driver_list:
+        if Car_Number not in racePasses:
+            racePasses[Car_Number] = {}
+            racePasses[Car_Number]["Overtaker"] = {}
+            racePasses[Car_Number]["Overtaken"] = {}
+            racePasses[Car_Number]["Overtaker"]["P2P"] = 0
+            racePasses[Car_Number]["Overtaker"]["~P2P"] = 0
+            racePasses[Car_Number]["Overtaker"]["OppP2P"] = 0
+            racePasses[Car_Number]["Overtaker"]["~OppP2P"] = 0
+            racePasses[Car_Number]["Overtaken"]["P2P"] = 0
+            racePasses[Car_Number]["Overtaken"]["~P2P"] = 0
+            racePasses[Car_Number]["Overtaken"]["OppP2P"] = 0
+            racePasses[Car_Number]["Overtaken"]["~OppP2P"] = 0
     return racePasses
 
 '''
     update_racePasses
     Parameters:
-        passing_driver - the transponder number of the driver who has completed the overtake
-        passed_driver - the transponder number of the driver who has just been overtaken
+        passing_driver - the car number of the driver who has completed the overtake
+        passed_driver - the car number of the driver who has just been overtaken
         racePasses - the dictionary containing data on pass statistics which is being updated and returned in this function
         passing_P2P - a boolean value that is true if passing_driver has Push to Pass active, default is false
         passed_P2P - a boolean value that is true if passed_driver has Push to Pass active, default is false
@@ -298,12 +333,12 @@ def initialize_racePasses(racePasses, driver_list):
     Which values in the dictionary are updated is determined by whether passing_P2P or passed_P2P is true.
     Since all values in the dictionary that may be updated are integers, they are updated by adding one to the value each time.
 
-    This function assumes the dictionary "data" will be in the following format, where the '0's are the numbers being updated:
+    This function assumes the dictionary will be in the following format, where the '0's are the numbers being updated:
     data{
-    Transponder_Number: {Overtaker{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}, Overtaken{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}},
-    Transponder_Number: {Overtaker{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}, Overtaken{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}},
+    Car_Number: {Overtaker{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}, Overtaken{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}},
+    Car_Number: {Overtaker{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}, Overtaken{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}},
     ...,
-    Transponder_Number: {Overtaker{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}, Overtaken{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}}
+    Car_Number: {Overtaker{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}, Overtaken{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}}
     }
 
 '''
@@ -333,20 +368,22 @@ def update_racePasses(passing_driver, passed_driver, racePasses, passing_P2P=Fal
     This function will build the dictionary needed by the update_overtakes function. The format of "data" in this function
     will be made to match the format of data in that function.
     The keys of the dictionary will be:
-        Transponder_Number - the transponder number of the driver using the overtake button
+        Transponder_Number - the transponder number of the driver using the overtake button, contains a nested dictionary
         "Laps" - contains a dictionary containing lap numbers corresponding to the laps the driver used the overtake button
         "TimelineIDs" - a dictionary the next TimelineIDs passed by the driver after pushing the overtake button being the keys
-        "Overtake" - contains a dictionary that will take contain keys for the beginning and end of the driver using overtake mode
-        "Start" - the next TimelineID passed after a driver uses push to pass
-        "End" - the final TimelineID passed while a driver is using push to pass
+        "Overtake Presses" - the total number of times a driver has used Push 2 Pass mode
 '''
 def initialize_overtakes(overtake_presses, driver_list):
-    for Transponder_Number in driver_list:
-        if Transponder_Number not in overtake_presses:
-            overtake_presses[Transponder_Number] = {}
-            overtake_presses[Transponder_Number]["Laps"] = {}
-            overtake_presses[Transponder_Number]["TimelineIDs"] = {}
-            overtake_presses[Transponder_Number]["Overtake"] = 0
+    for Car_Number in driver_list:
+        if Car_Number not in overtake_presses:
+            overtake_presses[Car_Number] = {}
+            overtake_presses[Car_Number]["Laps"] = {}
+            overtake_presses[Car_Number]["TimelineIDs"] = {}
+            overtake_presses[Car_Number]["Overtake Presses"] = 0
+        
+        if Car_Number not in overtake_presses:
+            print("Error inserting driver number.")
+            return NULL
 
     return overtake_presses
 
@@ -354,18 +391,17 @@ def initialize_overtakes(overtake_presses, driver_list):
     update_overtakes
     Parameters:
         driver_number - the number of the driver whose information is being updated
-        data - he dictionary containing data on overtake statistics which is being updated and returned in this function
-        input_data - the data, in the form of a dictionary, that is being added to data
-        overtake_num - the number of times the driver has used the overtake button
-    This function will update "data" to contain information including, how many times does a driver use overtake mode on each lap,
-    how many times does a driver use overtake mode at each TimelineID on the track, and where does the driver press and release the
-    overtake button each time they use it.
+        overtake_presses - the dictionary containing data on overtake press statistics which is being updated and returned in this function
+        lap_number - the current lap driver_number's car is on
+        Timeline_ID - the most recent on track checkpoint passed by the car
+    This function will update the dictionary to contain information including, how many times does a driver use overtake mode on each lap,
+    how many times does a driver use overtake mode at each TimelineID on the track, and how many time the driver has used the overtake button.
     The data dictionary will need to be in the following format to work properly:
         data{
-            Transponder_Number: {"Laps": {'0': 0, 1: 0, ...}, "TimelineIDs": {'1': 0, 2: 0, ...}, "Overtake" {1: {"Start": 1, "End": 3}, ...}},
-            Transponder_Number: {"Laps": {'0': 0, 1: 0, ...}, "TimelineIDs": {'1': 0, 2: 0, ...}, "Overtake" {1: {"Start": 1, "End": 3}, ...}},
+            Car_Number: {"Laps": {0: 0, 1: 0, ...}, "TimelineIDs": {1: 0, 2: 0, ...}, "Overtake Presses": 1},
+            Car_Number: {"Laps": {0: 0, 1: 0, ...}, "TimelineIDs": {1: 0, 2: 0, ...}, "Overtake Presses": 1},
             ...,
-            Transponder_Number: {"Laps": {0: 0, 1: 0, ...}, "TimelineIDs": {1: 0, 2: 0, ...}, "Overtake" {1: {"Start": 1, "End": 3}, ...}}
+            Car_Number: {"Laps": {0: 0, 1: 0, ...}, "TimelineIDs": {1: 0, 2: 0, ...}, "Overtake Presses": 1}
         }
 
 '''
@@ -380,7 +416,7 @@ def update_overtakes(driver_number, overtake_presses, lap_number, Timeline_ID):
     else:
         overtake_presses[driver_number]["TimelineIDs"][Timeline_ID] += 1
 
-    overtake_presses[driver_number]["Overtake"] += 1
+    overtake_presses[driver_number]["Overtake Presses"] += 1
     return overtake_presses
 
 
@@ -551,39 +587,7 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data):
     
     return combined_data
 
-
-def main():
-    # Initialize stdin and dictionaries
-    stream = sys.stdin
-    race = initializeRaceDictionary()
-
-    driver_list = []
-    for i in race["Competitors"]:
-        driver_list.append(i["CarNo"])
-
-    newEntry = {}
-    driverOvertakes = initializeDriverOvertakesDict(race)
-
-    overtake_data = {}
-    overtake_data = initialize_overtakes(overtake_data, driver_list)
-
-    racePasses_data = {}
-    racePasses_data = initialize_racePasses(racePasses_data, driver_list)
-
-
-    lappedPasses_data = {}
-    lappedPasses_data = initialize_lappedPasses(lappedPasses_data, driver_list)
-
-    combined_data = {}
-    combined_data["Passes"] = racePasses_data
-    combined_data["Overtake Mode"] = overtake_data
-    combined_data["Lapped Passes"] = lappedPasses_data
-    
-    # For Loop Receives One Entry Per Loop From The Generator And Parses It From JSON to a Python Dictionary
-    for line in readEntries(stream):
-        newEntry = json.loads(line)
-        combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data)
-
+def run_tests(combined_data):
     print()
     print("Check passes data: ")
     print(combined_data["Passes"])
@@ -647,6 +651,63 @@ def main():
     print(f"Average lap overtake pressed by drivers: {average}")
     print()
     
+def week_3_tests(combined_data, race):
+    average = averageLap(combined_data["Overtake Mode"], '10')
+    print()
+    print(f"Average lap overtake pressed by car number 10: {average}")
+    print()
+
+    print("Check overtake presses data:")
+    print(combined_data["Overtake Mode"])
+    print()
+
+    print("Testing Transponder to CarNo conversion:")
+    print(transponder_to_carNo(race["Competitors"], 5596122))
+    print()
+
+    print("Testing Transponder to CarNo failure:")
+    print(transponder_to_carNo(race["Competitors"], 100))
+    print()
+
+    print("Testing Max timeline:")
+    print(max_timeline(combined_data["Overtake Mode"], '10'))
+    print()
+    
+
+def main():
+    # Initialize stdin and dictionaries
+    stream = sys.stdin
+    race = initializeRaceDictionary()
+
+    driver_list = []
+    for i in race["Competitors"]:
+        driver_list.append(i["CarNo"])
+
+    newEntry = {}
+    driverOvertakes = initializeDriverOvertakesDict(race)
+
+    overtake_data = {}
+    overtake_data = initialize_overtakes(overtake_data, driver_list)
+
+    racePasses_data = {}
+    racePasses_data = initialize_racePasses(racePasses_data, driver_list)
+
+
+    lappedPasses_data = {}
+    lappedPasses_data = initialize_lappedPasses(lappedPasses_data, driver_list)
+
+    combined_data = {}
+    combined_data["Passes"] = racePasses_data
+    combined_data["Overtake Mode"] = overtake_data
+    combined_data["Lapped Passes"] = lappedPasses_data
+    
+    # For Loop Receives One Entry Per Loop From The Generator And Parses It From JSON to a Python Dictionary
+    for line in readEntries(stream):
+        newEntry = json.loads(line)
+        combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data)
+
+    #run_tests(combined_data)
+    #week_3_tests(combined_data, race)
 
 
 if __name__ == '__main__':
