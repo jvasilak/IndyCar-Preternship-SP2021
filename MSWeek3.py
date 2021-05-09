@@ -90,6 +90,10 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     maxTimelinePasses(race)
     print()
 
+    max_dict = max_timeline(combined_data["Passes"], driver_list)
+    print(max_dict)
+    time.sleep(0.2)
+
 
 '''
     mostRecentEvent
