@@ -1,0 +1,66 @@
+NTT INDYCAR SERIES
+
+LATEST EVENTS - LAP 54
+Spencer Pigot (#21) has used 6 seconds of P2P at Timeline 18.
+Max Chilton (#59) has used 2 seconds of P2P at Timeline 12.
+Sebastien Bourdais (#18) has used 7 seconds of P2P at Timeline 18.
+Josef Newgarden (#2) has used 7 seconds of P2P at Timeline 18.
+Ryan Hunter-Reay (#28) has used 4 seconds of P2P at Timeline 11.
+
+
+MOST P2P PASSES: Scott Dixon - 13
+
+MOST NON-P2P Passes: Santino Ferrucci - 8
+
+MOST P2P LAPPED PASSES: Alexander Rossi - 4
+
+MOST NON-P2P LAPPED PASSES: Alexander Rossi - 2
+
+
+INDIVIDUAL DRIVER STATISTICS
+                           % PASSES FOR POSITION
+                   DRIVER:   P2P       NON-P2P        TOTAL PASSES        AVG LAP # USE OF P2P           P2P LEFT           BEST TIMELINE
+         Felix Rosenqvist:   58%         42%               13                     25                         4               8 - 5 passes
+               Will Power:  100%          0%                3                     24                        51               3 - 1 pass
+              Tony Kanaan:   50%         50%               10                     19                         5               8 - 6 passes
+             Graham Rahal:   50%         50%                4                     28                         4               3 - 1 pass
+       Sebastien Bourdais:    0%        100%                2                     25                        14               3 - 1 pass
+         Santino Ferrucci:    0%        100%                8                     24                        37              14 - 3 passes
+          Josef Newgarden:   50%         50%                4                     29                         7               5 - 1 pass
+                 Ed Jones:   25%         75%                4                     14                       104               4 - 2 passes
+            Spencer Pigot:   83%         17%                6                     34                         6               6 - 2 passes
+           Simon Pagenaud:   75%         25%                8                     23                        31               4 - 3 passes
+               Zach Veach:   62%         38%                8                     18                         1               4 - 2 passes
+          Alexander Rossi:    0%        100%                7                     27                        51               3 - 3 passes
+         Ryan Hunter-Reay:   54%         46%               13                     27                         8              14 - 4 passes
+              Takuma Sato:   11%         89%                9                     25                        10               3 - 2 passes
+          Patricio O'Ward:   57%         43%                7                     20                         7               5 - 2 passes
+            Matheus Leist:   57%         43%                7                     22                         1               8 - 3 passes
+        James Hinchcliffe:   33%         67%                7                     26                         3               4 - 2 passes
+              Max Chilton:   50%         50%                8                     23                         2               8 - 4 passes
+              Jack Harvey:   50%         50%                4                      6                       147               3 - 2 passes
+          Marcus Ericsson:   50%         50%               12                     28                        20               1 - 2 passes
+             Colton Herta:  100%          0%                8                     27                         7               3 - 3 passes
+              Scott Dixon:   81%         19%               17                     23                        13               8 - 5 passes
+           Marco Andretti:   67%         33%                3                      8                       115               5 - 1 pass
+                                                    TOTAL: 172
+
+TIMELINE STATISTICS
+                 TIMELINE :   # PASSES     %       PASSES WITH P2P      PASSES WITHOUT P2P              BEST DRIVER                     DRIVER USING MOST P2P
+                        1 :      4         2%              4                     0              Marcus Ericsson - 2 passes             Felix Rosenqvist - 6 uses
+                        2 :      3         2%              2                     1             Santino Ferrucci - 1 pass              Patricio O'Ward - 1 use
+                        3 :     25        15%             20                     5              Alexander Rossi - 3 passes           Sebastien Bourdais - 3 uses
+                        4 :     17        10%              7                    10               Simon Pagenaud - 3 passes             Felix Rosenqvist - 6 uses
+                        5 :     17        10%              6                    11                  Takuma Sato - 2 passes             Felix Rosenqvist - 19 uses
+                        6 :     20        12%             16                     4                  Scott Dixon - 3 passes                  Tony Kanaan - 6 uses
+                        7 :      1         1%              0                     1                  Takuma Sato - 1 pass               Simon Pagenaud - 1 use
+                        8 :     47        27%             21                    26                  Tony Kanaan - 6 passes                Spencer Pigot - 6 uses
+                        9 :      2         1%              1                     1             Felix Rosenqvist - 1 pass             Felix Rosenqvist - 6 uses
+                       10 :      2         1%              1                     1              Alexander Rossi - 1 pass             Felix Rosenqvist - 3 uses
+                       11 :      1         1%              0                     1             Santino Ferrucci - 1 pass             Felix Rosenqvist - 11 uses
+                       12 :      2         1%              2                     0            James Hinchcliffe - 1 pass             Felix Rosenqvist - 7 uses
+                       14 :     17        10%              9                     8             Ryan Hunter-Reay - 4 passes             Felix Rosenqvist - 5 uses
+                       15 :     10         6%              5                     5              Marcus Ericsson - 2 passes             Felix Rosenqvist - 5 uses
+                       16 :      3         2%              0                     3             Felix Rosenqvist - 1 pass                  Tony Kanaan - 1 use
+                       17 :      1         1%              0                     1             Ryan Hunter-Reay - 1 pass                   Will Power - 7 uses
+
