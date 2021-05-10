@@ -28,7 +28,7 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
     os.system('clear')
     print('NTT INDYCAR SERIES')
     print()
-    print('LATEST EVENTS')
+    print(f'LATEST EVENTS - LAP {race["Passings"][-1]["LeaderLap"]}')
     race = mostRecentEvent(race, newEntry, P2PBool)
     print()
     print()
@@ -80,16 +80,23 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
         percentNonP2P = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], False)
         average = averageLap(combined_data["Overtake Mode"], i)
         secP2PLeft = P2PLeft(race, i)
-        print(f'{race["CarNotoName"][str(i)]:>25}:{round(percent):>5}%{round(percentNonP2P):>11}%{race["TotalPasses"][str(i)]:>17}{round(average):>23}{secP2PLeft:>26}')
+        maxTimeValDict = best_timeline_passes_func(race, i)
+        for timeline, val in maxTimeValDict.items():    
+            if val == 1 and timeline != 0:
+                print(f'{race["CarNotoName"][str(i)]:>25}:{round(percent):>5}%{round(percentNonP2P):>11}%{race["TotalPasses"][str(i)]:>17}{round(average):>23}{secP2PLeft:>26}{timeline:>16} - {val} pass')
+            elif timeline != 0:
+                print(f'{race["CarNotoName"][str(i)]:>25}:{round(percent):>5}%{round(percentNonP2P):>11}%{race["TotalPasses"][str(i)]:>17}{round(average):>23}{secP2PLeft:>26}{timeline:>16} - {val} passes')
+            else:
+                print(f'{race["CarNotoName"][str(i)]:>25}:{round(percent):>5}%{round(percentNonP2P):>11}%{race["TotalPasses"][str(i)]:>17}{round(average):>23}{secP2PLeft:>26}                  N/A')
     print(f'                                                    TOTAL: {len(race["RacePasses"])}')
     print()
 
     # Display Number of Passes occurring at each timeline
     print("TIMELINE STATISTICS")
-    print("                 TIMELINE :   # PASSES     %       PASSES WITH P2P      PASSES WITHOUT P2P          BEST DRIVER")
-    maxTimelinePasses(race)
+    print("                 TIMELINE :   # PASSES     %       PASSES WITH P2P      PASSES WITHOUT P2P              BEST DRIVER                     DRIVER USING MOST P2P")
+    maxTimelinePasses(race, combined_data, driver_list)
     print()
-
+    # time.sleep(0.2)
 
 '''
     mostRecentEvent
@@ -131,20 +138,104 @@ def mostRecentEvent(race, newEntry, P2PBool):
 
 
 '''
+    best_timeline
+    Parameters:
+        overtake_data - the dictionary containing information on overtake presses for all drivers
+        TimelineID - the number of the checkpoint being checked
+    Return Value - this function returns a dictionary containg a driver number and the number of overtakes completed by the driver at the checkpoint number passed to this function
+    This function will compare all drivers' statistics regarding overtake presses at a certain timeline to determine which driver has used it the most at a specific timeline
+                                                        
+'''
+def best_timeline(overtake_data, TimelineID):
+    return_dictionary = {}
+    max_val = 0
+    driver_numbers = []
+    for driver in overtake_data:
+        if TimelineID in overtake_data[driver]["TimelineIDs"]:
+            if(max_val <= overtake_data[driver]["TimelineIDs"][TimelineID]):
+                max_val = overtake_data[driver]["TimelineIDs"][TimelineID]
+                driver_numbers.append(driver)
+
+    for driver in driver_numbers:
+        return_dictionary[driver] = max_val
+    return return_dictionary
+
+
+'''
+    best_timeline_passes_func
+    This function returns a dictionary containing the timeline and passes for the best timeline of a specific driver.
+    PARAMETERS:
+        race - dictionary containing the passes-by-timeline data for each car
+        CarNo - specific car we want to find the best timeline for
+'''
+def best_timeline_passes_func(race, CarNo):
+    maxTimeVal = {}
+    tmpTimeline = 0
+    tmpMax = 0
+    for timeline, value in race['best_timeline_passes'][CarNo].items():
+        if value > tmpMax:
+            tmpMax = value
+            tmpTimeline = timeline
+
+    maxTimeVal[tmpTimeline] = tmpMax
+    return maxTimeVal
+
+'''
+    most_passes_by_timeline
+    This function returns a dictionary containing the car number and the number of passes for the car that has passed the most people at a specific timeline
+    PARAMETERS:
+        race - dictionary containing the passes-by-timeline data for each car
+        TimelineID - specific timeline we are referencing
+        driver_info - list containing all of the driver numbers
+'''
+def most_passes_by_timeline(race, TimelineID, driver_info):
+    maxTimeVal = {}
+    tmpCarNo = 0
+    tmpMax = 0
+    for CarNo in driver_info:
+        if race['best_timeline_passes'][CarNo][TimelineID] > tmpMax:
+            tmpCarNo = CarNo
+            tmpMax = race['best_timeline_passes'][CarNo][TimelineID]
+
+    maxTimeVal[tmpCarNo] = tmpMax
+    return maxTimeVal
+
+
+'''
     maxTimelinePasses
     This function is called from displayScreen and prints the timelines and the number of passes completed at each one, if any.  If there is not any passes completed, then it does not print that timeline for space conservation.  It also records the percentages of how many passes occurred at each specific timeline.
     PARAMETERS:
         race - The race dictionary contains the max_timelines dictionary that contains each timeline as a key and values as the number of passes completed at each one.
+        combined_data - another dictionary containing information concerning timelines
+        driver_info - list containing all car numbers
 '''
-def maxTimelinePasses(race):
+def maxTimelinePasses(race, combined_data, driver_info):
     for timeline, num in race['max_timelines'].items():
-        if num != 0:
-            print(f'{timeline:>25} :{num:>7}{round(num/len(race["RacePasses"])*100):>10}%{race["max_timelines_P2P"][timeline]:>15}{race["max_timelines_NonP2P"][timeline]:>22}')
+        return_dictionary = best_timeline(combined_data["Overtake Mode"], int(timeline))
+        timeline_driver_dict = most_passes_by_timeline(race, int(timeline), driver_info)
+        for driver, p2pNum in return_dictionary.items():
+            for carNum, passes in timeline_driver_dict.items():
+                if num != 0:
+                    if p2pNum != 1 and passes != 1:
+                        print(f'{timeline:>25} :{num:>7}{round(num/len(race["RacePasses"])*100):>10}%{race["max_timelines_P2P"][timeline]:>15}{race["max_timelines_NonP2P"][timeline]:>22}{race["CarNotoName"][str(carNum)]:>29} - {passes} passes{race["CarNotoName"][str(driver)]:>29} - {p2pNum} uses')
+                        break
+                    elif p2pNum == 1 and passes != 1:
+                        print(f'{timeline:>25} :{num:>7}{round(num/len(race["RacePasses"])*100):>10}%{race["max_timelines_P2P"][timeline]:>15}{race["max_timelines_NonP2P"][timeline]:>22}{race["CarNotoName"][str(carNum)]:>29} - {passes} passes{race["CarNotoName"][str(driver)]:>29} - {p2pNum} use')
+                        break
+                    elif p2pNum != 1 and passes == 1:
+                        print(f'{timeline:>25} :{num:>7}{round(num/len(race["RacePasses"])*100):>10}%{race["max_timelines_P2P"][timeline]:>15}{race["max_timelines_NonP2P"][timeline]:>22}{race["CarNotoName"][str(carNum)]:>29} - {passes} pass{race["CarNotoName"][str(driver)]:>29} - {p2pNum} uses')
+                        break
+                    elif p2pNum == 1 and passes == 1:
+                        print(f'{timeline:>25} :{num:>7}{round(num/len(race["RacePasses"])*100):>10}%{race["max_timelines_P2P"][timeline]:>15}{race["max_timelines_NonP2P"][timeline]:>22}{race["CarNotoName"][str(carNum)]:>29} - {passes} pass{race["CarNotoName"][str(driver)]:>29} - {p2pNum} use')
+                        break
+
+            break
 
 '''
     averageLap
     Parameters:
-        overtake_presses - a dictionary containing information on overtakes        
+        overtake_presses - a dictionary containing information on overtakes   
+        driver_number - car number being searched for
     Return value: this function will return the average lap number a driver uses P2P
     This function assumes the overtake_presses dictionary will be in the same form as the dictionary built in
         the initialize_overtakes function
@@ -230,7 +321,6 @@ def calcP2PPosition(racePasses, isP2P):
     This function assumes the lappedPasses dictionary will be in the same form as the dictionary built in
         the initialize_lappedPasses function
 '''
-
 def calc_lapped_P2P(lappedPasses, isP2P):
 
 	if isP2P:
@@ -328,13 +418,10 @@ def max_lapped_nonP2P(lappedPasses_data, driver_list):
 '''
 	max_timeline
 	Parameters:
-			overtake_data - a dictionary passes to the function containing data concerning the number of times drivers used 
-				overtake mode at a checkpoint on track
-			driver_number - the transponder number referring to the driver's data the function will be checking
-	Return value - this function returns a dictionary with single key, being the number corresponding to a checkpoint, 
-		and value, the number of times overtake mode is used at that checkpoint
-	This function will calculate the maximum value in the overtake_data[driver_number]["TimelineIDs"] dictionary and 
-		return a dictionary with the max value and corresponding key
+	    overtake_data - a dictionary passes to the function containing data concerning the number of times drivers used overtake mode at a checkpoint on track
+	    driver_number - the transponder number referring to the driver's data the function will be checking
+	Return value - this function returns a dictionary with single key, being the number corresponding to a checkpoint, and value, the number of times overtake mode is used at that checkpoint
+	This function will calculate the maximum value in the overtake_data[driver_number]["TimelineIDs"] dictionary and return a dictionary with the max value and corresponding key
 '''
 def max_timeline(overtake_data, driver_number):
     
@@ -352,8 +439,8 @@ def max_timeline(overtake_data, driver_number):
 '''
 	initialize_lappedPasses
 	Parameters:
-		lappedPasses - a dictionary that will be intitialized in this function
-		driver_list - a data structure containing the transponder numbers of participating drivers
+	    lappedPasses - a dictionary that will be intitialized in this function
+	    driver_list - a data structure containing the transponder numbers of participating drivers
 	The function will return the "lappedPasses" dictionary after its is initialized.
 	The lappedPasses dictionary is initialized in the following format.
 '''
@@ -399,7 +486,7 @@ def update_lappedPasses(lapped_car, lead_car, lappedPasses, use_P2P):
 					Push to Pass overtakes completed or non Push to Pass overtakes completed, default value is false
         P2P - the number of passes completed by a driver using Push to Pass, default value is 0
         not_P2P - the number of passes completed by a driver not using Push to Pass, the default value is 0
-        total_passes - the total number of passes completed by the driver during the race
+        totalPasses - the total number of passes completed by the driver during the race
     The value returned by this function is the percentage of passes completed either using or not using Push to Pass, depending on the calc_P2P variable.
 		The return value is a double value which should be between 0 and 100.
 		
@@ -408,7 +495,6 @@ def update_lappedPasses(lapped_car, lead_car, lappedPasses, use_P2P):
 def calc_percentage(P2P=0, not_P2P=0, calc_P2P=False):
     totalPasses = not_P2P + P2P
     if totalPasses == 0:
-        #print("Error: No pass data available")
         return 0
 
 
@@ -421,7 +507,7 @@ def calc_percentage(P2P=0, not_P2P=0, calc_P2P=False):
 '''
     initialize_racePasses
     Parameters:
-        data - the dictionary that is being initialized in this function
+        racePasses - the dictionary that is being initialized in this function
         driver_list - a data structure containing the transponder numbers of participating drivers
     This function will initialize the data dictionary, putting it in the formatt used by the update_racePasses function.
     Within the dictionary, there are multiple nested dictionaries.
@@ -470,7 +556,6 @@ def initialize_racePasses(racePasses, driver_list):
     ...,
     Transponder_Number: {Overtaker{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}, Overtaken{"P2P": 0, "~P2P": 0, "OppP2P": 0, "~OppP2P": 0}}
     }
-
 '''
 def update_racePasses(passing_driver, passed_driver, racePasses, passing_P2P=False, passed_P2P=False):
 
@@ -521,9 +606,9 @@ def initialize_overtakes(overtake_presses, driver_list):
     update_overtakes
     Parameters:
         driver_number - the number of the driver whose information is being updated
-        data - he dictionary containing data on overtake statistics which is being updated and returned in this function
-        input_data - the data, in the form of a dictionary, that is being added to data
-        overtake_num - the number of times the driver has used the overtake button
+        overtake_presses - dictionary containing various statistics about a driver's use of P2P
+        lap_number - lap number that overtake is used
+        TimelineID = specific timeline P2P was used
     This function will update "data" to contain information including, how many times does a driver use overtake mode on each lap,
     how many times does a driver use overtake mode at each TimelineID on the track, and where does the driver press and release the
     overtake button each time they use it.
@@ -534,7 +619,6 @@ def initialize_overtakes(overtake_presses, driver_list):
             ...,
             Transponder_Number: {"Laps": {0: 0, 1: 0, ...}, "TimelineIDs": {1: 0, 2: 0, ...}, "Overtake" {1: {"Start": 1, "End": 3}, ...}}
         }
-
 '''
 def update_overtakes(driver_number, overtake_presses, lap_number, Timeline_ID):
     if lap_number not in overtake_presses[driver_number]["Laps"]:
@@ -560,7 +644,6 @@ def update_overtakes(driver_number, overtake_presses, lap_number, Timeline_ID):
 
     The data must be in the following JSONL format to work properly:
         {"PassingID": 187739, "PassingTime": 424841964, "TranNr": 5596122, "TimelineID": 4, "Pit": false, "Flag": 8, "ElapsedTime": 0, "LapCount": 0, "LeaderLap": 0}
-
 '''
 def readEntries(stream):
 
@@ -602,6 +685,7 @@ def initializeRaceDictionary():
     race['max_timelines'] = {}
     race['max_timelines_P2P'] = {}
     race['max_timelines_NonP2P'] = {}
+    race['best_timeline_passes'] = {}
 
     race['Passings'] = []
     race['Overtakes'] = []
@@ -675,6 +759,8 @@ def initializeDriverOvertakesDict(race):
         race = the dictionary containing all of the statistics and timeline-generated entries from the race
         newEntry = the dictionary taken in from stdin that is updated during every iteration
         driverOvertakes = the dictionary that contains the transponder number of each car as keys.  Each key contains a value that is 30 seconds more than the last time each driver used Push to Pass.
+        combined_data = another dictionary containing various race statistics
+        driver_list = list containing all car numbers
         
         The race dictionary will continue to be updated in the following format:
         {
@@ -732,6 +818,7 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list
                 race['RacePasses'].append(newEntry)
                 race['TotalPasses'][str(newEntry['CarNo'])] += 1
                 race['max_timelines'][str(newEntry['TimelineID'])] += 1
+                race['best_timeline_passes'][newEntry['CarNo']][newEntry['TimelineID']] += 1
                 if newEntry["ForPosition"]:
                     P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
                     update_racePasses(newEntry['CarNo'], newEntry['CarPassed'], combined_data["Passes"], P2P_check, False)
@@ -764,10 +851,13 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list
 def initializeTotalPasses(race, driver_list):
     for num in driver_list:
         race['TotalPasses'][str(num)] = 0
+        race['best_timeline_passes'][num] = {}
     for timeline in race['Timelines']:
         race['max_timelines'][str(timeline['TimelineID'])] = 0
         race['max_timelines_P2P'][str(timeline['TimelineID'])] = 0
         race['max_timelines_NonP2P'][str(timeline['TimelineID'])] = 0
+        for num2 in driver_list:
+            race['best_timeline_passes'][num2][timeline['TimelineID']] = 0
     return race
 
 '''
@@ -785,6 +875,20 @@ def print_to_stream(race, combined_data, newEntry, P2P_check, driver_list):
         sys.stdout = original_stdout
         displayScreen(race, combined_data, newEntry, P2P_check, driver_list)
 
+
+'''
+    print_to_json
+    This function prints the collected dictionaries to an external JSON file that can be accessed after the race.
+    PARAMETERS:
+        race - dictionary to be printed
+        combined_data - dictionary to be printed
+    A JSON file called "currentRaceDictionaries.json" will be created.
+'''
+def print_to_json(race, combined_data):
+    outfile = open("currentRaceDictionaries.json", "w")
+    json.dump(race, outfile, indent=4)
+    json.dump(combined_data, outfile, indent=4)
+    outfile.close()
 
 def main():
     # Initialize stdin and dictionaries
@@ -821,6 +925,7 @@ def main():
         combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list)
 
     print_to_stream(race, combined_data, {}, False, driver_list)
+    print_to_json(race, combined_data)
 
 
 if __name__ == '__main__':
