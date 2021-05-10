@@ -10,6 +10,7 @@ import json
 import sys
 import operator
 import os
+import re
 import time
 
 '''
@@ -696,14 +697,16 @@ def initializeRaceDictionary():
 
 '''
     initializeCarNotoName
-    This function creates a dictionary within the race dictionary that uses the car numbers as keys and formats the drivers' first and last names as values
+    This function creates a dictionary within the race dictionary that uses the car numbers as keys and formats the drivers' first and last names as values.  This function also initializes a value to keep track of whether a certain car is currently in the pits which would invalidate a pass.
     PARAMETERS:
         race = The race['CarNotoName'] dictionary is initialized
 '''
 def initializeCarNotoName(race):
     race['CarNotoName'] = {}
+    race['InPit'] = {}
     for entry in race['Competitors']:
         race['CarNotoName'][entry['CarNo']] = f'{entry["FirstName"]} {entry["LastName"]}'
+        race['InPit'][entry['CarNo']] = False
     return race
 
 
@@ -796,6 +799,8 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list
 
         # Conditional Statement to Avoid Appending Unnecessary Data to Dictionary
         if newEntry['ElapsedTime'] >= 0 and newEntry['Flag'] == 1 and not newEntry['Pit']:
+            driverNum = transponder_to_carNo(race["Competitors"], newEntry["TranNr"])
+            race['InPit'][driverNum] = newEntry['Pit']
             race['Passings'].append(newEntry)
         return combined_data
 
@@ -822,17 +827,17 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list
                 if newEntry["ForPosition"]:
                     P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
                     update_racePasses(newEntry['CarNo'], newEntry['CarPassed'], combined_data["Passes"], P2P_check, False)
-                    if P2P_check and not entry["Pit"]:
+                    if P2P_check and not race["InPit"][newEntry["CarNo"]] and not race["InPit"][newEntry["CarPassed"]]:
                         race['max_timelines_P2P'][str(newEntry['TimelineID'])] += 1
-                    elif not P2P_check and not entry["Pit"]:
+                    elif not P2P_check and not race["InPit"][newEntry["CarNo"]] and not race["InPit"][newEntry["CarPassed"]]:
                         race['max_timelines_NonP2P'][str(newEntry['TimelineID'])] += 1
                     break
                 else:
                     P2P_check = checkOvertake(race, newEntry["PassingID"], driverOvertakes)
                     update_lappedPasses(newEntry['CarPassed'], newEntry['CarNo'], combined_data["Lapped Passes"], P2P_check)
-                    if P2P_check and not entry["Pit"]:
+                    if P2P_check and not race["InPit"][newEntry["CarNo"]] and not race["InPit"][newEntry["CarPassed"]]:
                         race['max_timelines_P2P'][str(newEntry['TimelineID'])] += 1
-                    elif not P2P_check and not entry["Pit"]:
+                    elif not P2P_check and not race["InPit"][newEntry["CarNo"]] and not race["InPit"][newEntry["CarPassed"]]:
                         race['max_timelines_NonP2P'][str(newEntry['TimelineID'])] += 1
                     break
 
@@ -921,6 +926,12 @@ def main():
     
     # For Loop Receives One Entry Per Loop From The Generator And Parses It From JSON to a Python Dictionary
     for line in readEntries(stream):
+        if "False" in line:
+            line = re.sub("False", "false", line)
+        elif "True" in line:
+            line = re.sub("True", "true", line)
+
+        line = re.sub(r"\'", r'"', line)
         newEntry = json.loads(line)
         combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list)
 
