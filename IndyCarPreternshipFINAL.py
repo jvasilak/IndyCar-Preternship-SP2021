@@ -22,10 +22,11 @@ import time
         newEntry - current entry that is being recorded
         P2PBool - value from checkOvertakes function to determine use of P2P
         driver_list - list containing all car numbers
+        P2PInit = number from main describing how many seconds of P2P are given at the start of the race
     The terminal is cleared before every new event and continually updated
 '''
 
-def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
+def displayScreen(race, combined_data, newEntry, P2PBool, driver_list, P2PInit):
     os.system('clear')
     print('NTT INDYCAR SERIES')
     print()
@@ -80,7 +81,7 @@ def displayScreen(race, combined_data, newEntry, P2PBool, driver_list):
         percent = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], True)
         percentNonP2P = calc_percentage(combined_data["Passes"][i]["Overtaker"]["P2P"], combined_data["Passes"][i]["Overtaker"]["~P2P"], False)
         average = averageLap(combined_data["Overtake Mode"], i)
-        secP2PLeft = P2PLeft(race, i)
+        secP2PLeft = P2PLeft(race, i, P2PInit)
         maxTimeValDict = best_timeline_passes_func(race, i)
         for timeline, val in maxTimeValDict.items():    
             if val == 1 and timeline != 0:
@@ -280,11 +281,11 @@ def transponder_to_carNo(driver_info, search_number):
         driver_number - Car Number
     If a driver has used Push to Pass, his or her most recent entry will be found.  The number of seconds of Push to Pass remaining will be returned, or 200 will be returned if no entries are found for that driver
 '''
-def P2PLeft(race, driver_number):
+def P2PLeft(race, driver_number, P2PInit):
     for entry in reversed(race["Overtakes"]):
         if driver_number == transponder_to_carNo(race["Competitors"], entry["TranNr"]):
             return entry["OvertakeRemain"]
-    return 200
+    return P2PInit
 
 '''
     calcP2PPosition
@@ -764,6 +765,7 @@ def initializeDriverOvertakesDict(race):
         driverOvertakes = the dictionary that contains the transponder number of each car as keys.  Each key contains a value that is 30 seconds more than the last time each driver used Push to Pass.
         combined_data = another dictionary containing various race statistics
         driver_list = list containing all car numbers
+        P2PInit = number from main describing how many seconds of P2P are given at the start of the race
         
         The race dictionary will continue to be updated in the following format:
         {
@@ -791,7 +793,7 @@ def initializeDriverOvertakesDict(race):
             ]
         }
 '''
-def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list):
+def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list, P2PInit):
     P2P_check = False
     # If Statement Places newEntry in Correct Nested Dictionary with Additional Conditions
     # This If Statement takes in any newEntry that contains data from cars passing timelines.
@@ -841,7 +843,7 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list
                         race['max_timelines_NonP2P'][str(newEntry['TimelineID'])] += 1
                     break
 
-    displayScreen(race, combined_data, newEntry, P2P_check, driver_list)
+    displayScreen(race, combined_data, newEntry, P2P_check, driver_list, P2PInit)
     return combined_data
 
 
@@ -869,16 +871,21 @@ def initializeTotalPasses(race, driver_list):
     print_to_stream
     This function is called from the main function at the end of program execution to create a txt file containing the final results of the race that can be analyzed by IndyCar and distributed to racing teams and other stakeholders
     PARAMETERS:
-        NONE
+        race = dictionary containing data from race and track sensors
+        combined_data = dictionary containing data and calculations
+        newEntry = current race entry
+        P2P_check = boolean to check if P2P was used
+        driver_list = list of car numbers
+        P2PInit = number from main describing how many seconds of P2P are given at the start of the race
     A text file (completerace.txt) will be created by calling the displayScreen function.
 '''
-def print_to_stream(race, combined_data, newEntry, P2P_check, driver_list):
+def print_to_stream(race, combined_data, newEntry, P2P_check, driver_list, P2PInit):
     original_stdout = sys.stdout
     with open('completerace.txt', 'w') as f:
         sys.stdout = f
-        displayScreen(race, combined_data, newEntry, P2P_check, driver_list)
+        displayScreen(race, combined_data, newEntry, P2P_check, driver_list, P2PInit)
         sys.stdout = original_stdout
-        displayScreen(race, combined_data, newEntry, P2P_check, driver_list)
+        displayScreen(race, combined_data, newEntry, P2P_check, driver_list, P2PInit)
 
 
 '''
@@ -898,6 +905,7 @@ def print_to_json(race, combined_data):
 def main():
     # Initialize stdin and dictionaries
     stream = sys.stdin
+    P2PInit = 200
     race = initializeRaceDictionary()
 
     driver_list = []
@@ -933,9 +941,9 @@ def main():
 
         line = re.sub(r"\'", r'"', line)
         newEntry = json.loads(line)
-        combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list)
+        combined_data = entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list, P2PInit)
 
-    print_to_stream(race, combined_data, {}, False, driver_list)
+    print_to_stream(race, combined_data, {}, False, driver_list, P2PInit)
     print_to_json(race, combined_data)
 
 
