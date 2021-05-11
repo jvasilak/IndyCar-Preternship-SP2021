@@ -819,7 +819,7 @@ def entryComparisons(race, newEntry, driverOvertakes, combined_data, driver_list
     # This Elif Statement appends any data associated with Passes
     elif 'CarPassed' in newEntry:
         for entry in race["Passings"]:
-            if entry["PassingID"] == newEntry["PassingID"] and not entry["Pit"]:
+            if entry["PassingID"] == newEntry["PassingID"] and not entry["Pit"] and race["Passings"][-1]["Flag"] == 1:
                 race['RacePasses'].append(newEntry)
                 race['TotalPasses'][str(newEntry['CarNo'])] += 1
                 race['max_timelines'][str(newEntry['TimelineID'])] += 1
